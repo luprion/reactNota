@@ -82,19 +82,19 @@ const PostAllNota = () => {
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium">Tanggal</label>
-              <Input type="date" {...register("date")} />
+              <Input type="date" {...register("tanggal")} />
             </div>
             <div>
               <label className="block text-sm font-medium">Jatuh Tempo</label>
-              <Input type="date" {...register("dueDate")} />
+              <Input type="date" {...register("jt_tempo")} />
             </div>
             <div>
               <label className="block text-sm font-medium">Pembeli</label>
-              <Input {...register("buyer")} />
+              <Input {...register("pembeli")} />
             </div>
             <div>
               <label className="block text-sm font-medium">Alamat</label>
-              <Input {...register("address")} />
+              <Input {...register("alamat")} />
             </div>
           </div>
 
@@ -103,7 +103,7 @@ const PostAllNota = () => {
           <div className="grid grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium">Nama Barang</label>
-              <Input {...register("itemName")} />
+              <Input {...register("nama_barang")} />
             </div>
             <div>
               <label className="block text-sm font-medium">Coly</label>
@@ -111,18 +111,18 @@ const PostAllNota = () => {
             </div>
             <div>
               <label className="block text-sm font-medium">Qty</label>
-              <Input type="number" {...register("qty")} />
+              <Input type="number" {...register("qty_isi")} />
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium">Nama Isi</label>
-              <Input {...register("itemContent")} />
+              <Input {...register("nama_isi")} />
             </div>
             <div>
               <label className="block text-sm font-medium">Harga</label>
-              <Input type="number" {...register("price")} />
+              <Input type="number" {...register("harga")} />
             </div>
             <div className="flex items-end">
               <Button type="button" className="w-full flex items-center gap-2">
