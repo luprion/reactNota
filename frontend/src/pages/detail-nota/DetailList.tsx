@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useGetDetailNota, useGetAllNota  } from "@/services/queries";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
@@ -7,12 +7,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDeleteDetailNota } from "@/services/mutations";
 import { useRef } from "react";
 import { useReactToPrint } from "react-to-print";
+import AddDetailPage from "./AddDetail";
 
 const DetailNota = () => {
   const { notaId } = useParams();
-  const { data: nota } = useGetAllNota();
+  const { data: notaList } = useGetAllNota();
+  const nota = notaList?.find((nota) => nota.id === Number(notaId));
+  console.log(nota, "si nnota");
+  
   const { data: details, refetch } = useGetDetailNota(notaId);
   const deleteDetail = useDeleteDetailNota();
+  const navigate = useNavigate();
+
+  const renderDate = (dateString: string) => {
+        if (!dateString) return "Unknown Date";
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = date.toLocaleString("en-US", { month: "long" });
+        const day = String(date.getDate()).padStart(2, "0");
+      
+        return `${day} ${month} ${year}`;
+  };
 
   const printRef = useRef<HTMLDivElement>(null);
   const handlePrint = useReactToPrint({
@@ -24,11 +39,27 @@ const DetailNota = () => {
   const totalJumlah = details?.reduce((sum, detail) => sum + detail.jumlah, 0) || 0;
 
   const columns: ColumnDef<any>[] = [
+    {accessorKey: "id", header: "No"},
     { accessorKey: "coly", header: "COLY" },
-    { accessorKey: "qty_isi", header: "ISI" },
+    {
+      accessorKey: "isi",
+      header: "ISI",
+      cell: ({ row }) => {
+        const { qty_isi, nama_isi } = row.original;
+        return `${qty_isi} ${nama_isi}`;
+      },
+    },
+    {
+      accessorKey: "jumlah",
+      header: "JUMLAH",
+      cell: ({ row }) => {
+        const { jumlah, nama_isi } = row.original;
+        return `${jumlah} ${nama_isi}`;
+      },
+    },
     { accessorKey: "nama_barang", header: "NAMA BARANG" },
     { accessorKey: "harga", header: "HARGA" },
-    { accessorKey: "jumlah", header: "JUMLAH" },
+    { accessorKey: "total", header: "TOTAL" },
     {
       id: "actions",
       header: "Aksi",
@@ -55,7 +86,8 @@ const DetailNota = () => {
   };
 
   return (
-    <div>
+    <div className="container place-content-center">
+      <AddDetailPage/>
         <Button className="no-print mb-4" onClick={() => handlePrint()}>Print Nota</Button>
         <div ref={printRef} id="print-area">
             <Card className="p-4">
@@ -63,19 +95,19 @@ const DetailNota = () => {
         <CardTitle>Detail Nota</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-between">
+        <div className="flex justify-between mb-4 gap-2">
           <div>
-            <p>Surabaya, {nota?.tanggal}</p>
-            <p>Tuan: {nota?.tuan}</p>
+            {nota && <p>Surabaya, {renderDate(nota?.tanggal)}</p>}
+            <p>Pembeli: {nota?.pembeli}</p>
           </div>
           <div>
-            <p>No Nota: {nota?.id}</p>
+            <p>No Nota: {nota?.no_nota}</p>
+            <p>Alamat: {nota?.alamat}</p>
           </div>
         </div>
 
-        <Table>
-          <TableCaption>List Detail Nota</TableCaption>
-          <TableHeader>
+        <Table className="mb-2">
+          <TableHeader className="bg-neutral-700">
             <TableRow>
               {table.getHeaderGroups().map((headerGroup) =>
                 headerGroup.headers.map((header) => (
@@ -102,7 +134,7 @@ const DetailNota = () => {
         <div className="flex justify-between mt-4">
           <p className="font-bold">JUMLAH Rp. {totalJumlah.toLocaleString()}</p>
           <Button
-            onClick={() => console.log("Tambah Detail")}
+            onClick={() => navigate(`/nota/${notaId}/add-detail-nota`)}
             disabled={(details?.length ?? 0) >= 10}
           >
             Tambah Detail

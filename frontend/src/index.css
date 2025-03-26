@@ -84,6 +84,11 @@ body {
   min-height: 100vh;
 }
 
+#root {
+  flex-grow: 1;
+  width: 100%;
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
@@ -107,6 +112,37 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
+
+/* Warna untuk tombol Lihat Detail */
+.toggle-lihat {
+  background-color: #007bff; /* Biru */
+  color: white;
+}
+
+.toggle-lihat:hover {
+  background-color: #0056b3;
+}
+
+/* Warna untuk tombol Edit */
+.toggle-edit {
+  background-color: #ffc107; /* Kuning */
+  color: black;
+}
+
+.toggle-edit:hover {
+  background-color: #e0a800;
+}
+
+/* Warna untuk tombol Delete */
+.toggle-delete {
+  background-color: #dc3545; /* Merah */
+  color: white;
+}
+
+.toggle-delete:hover {
+  background-color: #c82333;
+}
+
 
 @media (prefers-color-scheme: light) {
   :root {

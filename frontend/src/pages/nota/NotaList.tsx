@@ -1,115 +1,116 @@
 import { useGetAllNota } from '@/services/queries'
 import { Nota } from '@/types/nota';
 import { ColumnDef, flexRender, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from "@tanstack/react-table";
-// import { useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Table, TableBody, TableCaption, TableCell, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { EyeIcon, PlusIcon, Trash2 } from 'lucide-react';
 
-const NotaList: React.FC = () => {
-    const {data} = useGetAllNota();
-    const { notaId } = useParams();
+const NotaList = () => {
+    const { data } = useGetAllNota();
     const navigate = useNavigate();
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const renderDate = (dateString: string) => {
+        if (!dateString) return "Unknown Date";
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = date.toLocaleString("en-US", { month: "long" });
+        const day = String(date.getDate()).padStart(2, "0");
+      
+        return `${day} ${month} ${year}`;
+      };
 
     const handleNavigate = (id: number) => {
         navigate(`/nota/${id}/detail-nota`)
     }
 
-
-    console.log("manaa datanya",data);
-    
-    const [sorting, setSorting] = useState<SortingState>([]);
-    // const queryClient = useQueryClient();
-
-    const columns = React.useMemo<ColumnDef<Nota>[]>(
-        () => [
-            {
-                accessorKey: "id",
-                header: "No"
-            },
-            {
-                accessorKey: "tanggal",
-                header: "Tanggal"
-            }, 
-            {
-                accessorKey: "status",
-                header: "Status"
-            },
-            {
-                id: "actions",
-                header: "Actions",
-                cell: ({row}) => (
-                    <ToggleGroup type='single'>
-                        <ToggleGroupItem value='Lihat Detail' onClick={() => handleNavigate(row.original.id)}>Lihat Detail</ToggleGroupItem>
-                        <ToggleGroupItem value='edit'>Edit</ToggleGroupItem>
-                        <ToggleGroupItem value='delete'>Delete</ToggleGroupItem>
-                    </ToggleGroup>
-                )
-            }
-        ]
-    ) 
+    const columns = React.useMemo<ColumnDef<Nota>[]>(() => [
+        { accessorKey: "id", header: "No" },
+        { accessorKey: "pembeli", header: "Pembeli" },
+        { accessorFn: (row) => renderDate(row.tanggal), header: "Tanggal" },
+        { accessorKey: "status", header: "Status" },
+        {
+            id: "actions",
+            header: "Actions",
+            cell: ({ row }) => (
+                <ToggleGroup type='single' className=' gap-2 '>
+                    <ToggleGroupItem value='lihat' className='toggle-lihat' onClick={() => handleNavigate(row.original.id)}>
+                       <EyeIcon/> Lihat Detail  
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value='delete' className='toggle-delete'> <Trash2/> Delete</ToggleGroupItem>
+                </ToggleGroup>
+            )
+        }
+    ], []);
 
     const table = useReactTable({
         data: data ?? [],
         columns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
-        state: {
-          sorting,
-        },
+        state: { sorting },
         onSortingChange: setSorting,
-      });
+    });
 
-  return (
-    <>
-    <Button onClick={() => navigate('/tambah-nota')}>Tambah Nota</Button>
-            <Table>
-            <TableCaption>List Nota </TableCaption>
-            <TableHeader>
-                <TableRow>
-                    {table.getHeaderGroups().map((headerGroup) => 
-                    headerGroup.headers.map((header) => (
-                        <TableCell key={header.id} colSpan={header.colSpan}>
-                            {header.isPlaceholder ? null : (
-                      <div
-                        {...{
-                          onClick: header.column.getToggleSortingHandler(),
-                          style: { cursor: "pointer", display: "flex" },
-                        }}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
+    return (
+        <div className="container mx-auto max-w-5xl p-6 bg-white shadow-lg rounded-lg">
+            <h1 className="text-2xl font-bold mb-4 text-center">Daftar Nota</h1>
+
+            {/* Tombol Tambah Nota */}
+            <div className="flex justify-end mb-4">
+                <Button onClick={() => navigate('/tambah-nota')} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                    <PlusIcon/>Tambah Nota
+                </Button>
+            </div>
+
+            {/* Tabel Nota */}
+            <div className="overflow-x-auto">
+                <Table className="w-full border border-gray-200 rounded-md">
+                    <TableHeader className="bg-gray-100">
+                        <TableRow>
+                            {table.getHeaderGroups().map((headerGroup) =>
+                                headerGroup.headers.map((header) => (
+                                    <TableCell key={header.id} colSpan={header.colSpan} className="p-2 font-semibold text-center">
+                                        {header.isPlaceholder ? null : (
+                                            <div {...{
+                                                onClick: header.column.getToggleSortingHandler(),
+                                                style: { cursor: "pointer", display: "flex", justifyContent: "center" },
+                                            }}>
+                                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                                {header.column.getIsSorted() === "asc" ? <span> 🔼</span> : null}
+                                                {header.column.getIsSorted() === "desc" ? <span> 🔽</span> : null}
+                                            </div>
+                                        )}
+                                    </TableCell>
+                                ))
+                            )}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {table.getRowModel().rows.length > 0 ? (
+                            table.getRowModel().rows.map((row) => (
+                                <TableRow key={row.id} className="hover:bg-gray-50 transition-all">
+                                    {row.getVisibleCells().map((cell) => (
+                                        <TableCell key={cell.id} className="p-3 text-center">
+                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={columns.length} className="text-center py-4">
+                                    Tidak ada data tersedia.
+                                </TableCell>
+                            </TableRow>
                         )}
-                        {header.column.getIsSorted() === "asc" ? (
-                          <p>^</p>
-                        ) : null}
-                        {header.column.getIsSorted() === "desc" ? (
-                          <p>v</p>
-                        ) : null}
-                      </div>
-                    )}
-                        </TableCell>
-                    ))
-                    )}
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
-                        {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id}>
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
-                        ))}
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    </>
-  )
+                    </TableBody>
+                </Table>
+            </div>
+        </div>
+    )
 }
 
-export default NotaList
+export default NotaList;

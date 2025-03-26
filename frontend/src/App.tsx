@@ -3,13 +3,13 @@ import routes from "@/router/routes";
 
 function App() {
   return (
-    <>
-      <div className="wrapper-all ">
-        <div className="wrapper-content font-fira-sans">
-          <RouterProvider router={routes}/>
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="container mx-auto px-6 py-8">
+        <div className="max-w-screen-lg mx-auto bg-white shadow-lg rounded-lg p-10">
+          <RouterProvider router={routes} />
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

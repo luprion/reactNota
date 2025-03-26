@@ -9,9 +9,9 @@ export const getAllNota = async (): Promise<(Nota[])> => {
     return data.payload.datas;
 }
 
-export const createNota = async () => {
-    const {data} = await axios.post(`${BASE_URL}/nota`);
-    return data.payload.datas;
+export const createNota = async (notaData: Nota) => {
+    const {data} = await axios.post(`${BASE_URL}/nota`, notaData);
+    return data;
 }
 
 export const updateNota = async (id: number, nota: Nota) => {
@@ -32,7 +32,7 @@ export const getAllDetailNota = async (notaId: number): Promise<DetailNota[]> =>
 // Create a new detail nota
 export const createDetailNota = async (detailNota: DetailNota) => {
     const { data } = await axios.post(`${BASE_URL}/detail-nota`, detailNota);
-    return data.payload.datas;
+    return data;
 };
   
   
