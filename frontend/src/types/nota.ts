@@ -1,3 +1,5 @@
+import { DetailNota } from "./detailNota";
+
 export interface Nota {
     id: number,
     no_nota: string,
@@ -7,7 +9,7 @@ export interface Nota {
     total_harga: number,
     total_coly: number,
     jt_tempo: string,
-    status: number
+    details: DetailNota[],
 }
 
 export interface Pagination {

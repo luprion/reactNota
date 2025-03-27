@@ -80,21 +80,51 @@ app.put("/nota/:id/status", (req, res) => {
 });
 
 // tambah detail nota(validasi nota_id harus ada)
-app.post("/detail-nota", (req, res) => {
-  const { nota_id, nama_barang, coly, qty_isi, nama_isi, jumlah, harga, total } = req.body;
+app.post("/nota", (req, res) => {
+  const { no_nota, tanggal, pembeli, alamat, total_harga, total_coly, jt_tempo, details } = req.body;
 
-  // cek nota_id
-  db.query("SELECT id FROM nota WHERE id = ?", [nota_id], (error, result) => {
-    if (error || result.length === 0) return response(400, "Invalid nota_id", "nota_id not found", res);
+  // Query untuk insert ke tabel nota
+  const sqlNota = "INSERT INTO nota (no_nota, tanggal, pembeli, alamat, total_harga, total_coly, jt_tempo, status) VALUES (?, ?, ?, ?, ?, ?, ?, 1)";
 
-    // jika nota_id valid, data ditambahkan
-    const sql = "INSERT INTO detail_nota (nota_id, nama_barang, coly, qty_isi, nama_isi, jumlah, harga, total) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-    db.query(sql, [nota_id, nama_barang, coly, qty_isi, nama_isi, jumlah, harga, total], (err, result) => {
-      if (err) return response(400, err, "failed to create detail nota", res);
-      response(201, { id: result.insertId }, "detail nota created successfully", res);
+  db.beginTransaction((err) => {
+    if (err) return response(500, err, "Transaction error", res);
+
+    db.query(sqlNota, [no_nota, tanggal, pembeli, alamat, total_harga, total_coly, jt_tempo], (error, result) => {
+      if (error) {
+        return db.rollback(() => {
+          response(400, error, "Failed to create nota", res);
+        });
+      }
+
+      const nota_id = result.insertId; // Dapatkan ID nota yang baru dibuat
+
+      // Query untuk insert ke tabel detail_nota
+      const sqlDetail = "INSERT INTO detail_nota (nota_id, nama_barang, coly, qty_isi, nama_isi, jumlah, harga, total) VALUES ?";
+
+      // Buat array dari details yang dikirim dalam request
+      const detailValues = details.map(item => [nota_id, item.nama_barang, item.coly, item.qty_isi, item.nama_isi, item.jumlah, item.harga, item.total]);
+
+      db.query(sqlDetail, [detailValues], (errDetail, resultDetail) => {
+        if (errDetail) {
+          return db.rollback(() => {
+            response(400, errDetail, "Failed to create detail nota", res);
+          });
+        }
+
+        // Commit transaksi jika semua berhasil
+        db.commit((commitErr) => {
+          if (commitErr) {
+            return db.rollback(() => {
+              response(500, commitErr, "Transaction commit failed", res);
+            });
+          }
+          response(201, { nota_id, detail_inserted: resultDetail.affectedRows }, "Nota and detail nota created successfully", res);
+        });
+      });
     });
   });
 });
+
 
 // edit detail nota (validasi nota_id harus ada)
 app.put("/detail-nota/:id", (req, res) => {
