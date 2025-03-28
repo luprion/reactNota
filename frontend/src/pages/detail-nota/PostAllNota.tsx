@@ -64,10 +64,10 @@ const PostAllNota = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex justify-start gap-2 items-center mb-4">
             <h2 className="text-lg font-bold">Nota</h2>
-            <Input {...register("no_nota")} className="w-35 text-center" disabled />
+            <Input {...register("no_nota")} className="w-35 text-center" hidden />
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-2 gap-6 mb-4">
             <div className="grid grid-rows-2 gap-2 mb-4">
             {/* Tanggal */}
             <Label>Tanggal</Label>

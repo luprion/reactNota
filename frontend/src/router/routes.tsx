@@ -5,6 +5,7 @@ import AddNotaPage from "@/pages/nota/AddNota";
 import DetailNota from "@/pages/detail-nota/DetailList";
 import AddDetailPage from "@/pages/detail-nota/AddDetail";
 import PostAllNota from "@/pages/detail-nota/PostAllNota";
+import AddAllNota from "@/pages/detail-nota/AddAllNota";
 
 const routes = createBrowserRouter([
     {
@@ -30,6 +31,10 @@ const routes = createBrowserRouter([
     {
         path: '/nota/add-nota',
         element: <PostAllNota/>
+    },
+    {
+        path: '/nota/tambah-nota',
+        element: <AddAllNota/>
     },
 ])
 
