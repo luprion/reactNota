@@ -49,14 +49,14 @@ app.get("/detail-nota/:nota_id", (req, res) => {
 });
 
 // tambah nota
-app.post("/nota", (req, res) => {
-  const { no_nota, tanggal, pembeli, alamat, total_harga, total_coly, jt_tempo } = req.body;
-  const sql = "INSERT INTO nota (no_nota, tanggal, pembeli, alamat, total_harga, total_coly, jt_tempo, status) VALUES (?, ?, ?, ?, ?, ?, ?, 1)";
-  db.query(sql, [no_nota, tanggal, pembeli, alamat, total_harga, total_coly, jt_tempo], (error, result) => {
-    if (error) return response(400, error, "failed to create nota", res);
-    response(201, { id: result.insertId }, "nota created successfully", res);
-  });
-});
+// app.post("/nota", (req, res) => {
+//   const { no_nota, tanggal, pembeli, alamat, total_harga, total_coly, jt_tempo } = req.body;
+//   const sql = "INSERT INTO nota (no_nota, tanggal, pembeli, alamat, total_harga, total_coly, jt_tempo, status) VALUES (?, ?, ?, ?, ?, ?, ?, 1)";
+//   db.query(sql, [no_nota, tanggal, pembeli, alamat, total_harga, total_coly, jt_tempo], (error, result) => {
+//     if (error) return response(400, error, "failed to create nota", res);
+//     response(201, { id: result.insertId }, "nota created successfully", res);
+//   });
+// });
 
 // edit nota
 app.put("/nota/:id", (req, res) => {
