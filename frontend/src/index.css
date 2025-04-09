@@ -5,17 +5,42 @@
 
 @media print {
   @page {
-    size: A4 landscape; 
-    margin: 20mm; 
+    size: A6 landscape; 
+    margin: 10mm; 
   }
-
+  
   body {
     font-size: 12px; 
   }
-
+  
   .no-print {
     display: none !important; 
   }
+  
+  .page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+  
+  /* Agar hanya elemen dengan .print-area yang terlihat saat cetak */
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+}
+
+.t-bold{
+  font-weight: bold;
 }
 
 

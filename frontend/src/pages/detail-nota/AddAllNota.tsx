@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableFooter, TableHeader, TableRow } from "@/components/ui/table";
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { useState } from "react";
+import Swal from "sweetalert2";
+import axios from "axios";
 
 const AddAllNota = () => {
   const currentDate = new Date();
@@ -19,7 +21,7 @@ const AddAllNota = () => {
 
   const { mutate: createNota, isPending } = useCreateNota();
 
-  const { register, handleSubmit, control, watch, setValue } = useForm({
+  const { register, handleSubmit, control, watch, setValue, reset } = useForm({
     defaultValues: {
       no_nota: formattedNoNota,
       tanggal: formatDate(new Date()),
@@ -30,7 +32,7 @@ const AddAllNota = () => {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({ control, name: "details" });
+  const { fields } = useFieldArray({ control, name: "details" });
 
   const details = watch("details", []);
   const totalColy = details.reduce((sum, d) => sum + (parseInt(d.coly) || 0), 0);
@@ -39,48 +41,121 @@ const AddAllNota = () => {
     0
   );
 
-//   const addDetail = () => {
-//     append({ nama_barang: "", coly: "", qty_isi: "", nama_isi: "", harga: "" });
-//   };
+  // const onSubmit = (data) => {
+  //   const formattedData = {
+  //     ...data,
+  //     total_harga: totalHarga,
+  //     total_coly: totalColy,
+  //     details: data.details.map((d) => ({
+  //       ...d,
+  //       coly: parseInt(d.coly),
+  //       qty_isi: parseInt(d.qty_isi),
+  //       harga: parseFloat(d.harga),
+  //       jumlah: parseInt(d.coly) * parseInt(d.qty_isi),
+  //       total: parseInt(d.coly) * parseInt(d.qty_isi) * parseFloat(d.harga),
+  //     })),
+  //   };
 
-  const onSubmit = (data) => {
-    const formattedData = {
-      ...data,
-      total_harga: totalHarga,
-      total_coly: totalColy,
-      details: data.details.map((d) => ({
-        ...d,
-        coly: parseInt(d.coly),
-        qty_isi: parseInt(d.qty_isi),
-        harga: parseFloat(d.harga),
-        jumlah: parseInt(d.coly) * parseInt(d.qty_isi),
-        total: parseInt(d.coly) * parseInt(d.qty_isi) * parseFloat(d.harga),
-      })),
-    };
+  //   createNota(formattedData);
 
-    createNota(formattedData);
+  //   console.log('payload', formattedData);
+    
+  // };
+
+    const onSubmit = (data) => {
+      if (!barang.length) {
+        console.error("Tidak ada barang yang bisa disimpan!");
+        return;
+      }
+
+      // Gabungkan data nota (dari form) dengan details (dari tabel barang)
+      const formattedData = {
+        ...data, // Data nota dari form (misal: id, tanggal, customer)
+        total_harga: barang.reduce((sum, item) => sum + item.total, 0), // Hitung total harga
+        total_coly: barang.reduce((sum, item) => sum + item.coly, 0), // Hitung total coly
+        details: barang.map((d) => ({
+          nama_barang: d.nama_barang,
+          coly: parseInt(d.coly) || 0,
+          qty_isi: parseInt(d.qty_isi) || 0,
+          nama_isi: d.nama_isi || "",
+          harga: parseFloat(d.harga) || 0,
+          jumlah: (parseInt(d.coly) || 0) * (parseInt(d.qty_isi) || 0),
+          total:
+            (parseInt(d.coly) || 0) *
+            (parseInt(d.qty_isi) || 0) *
+            (parseFloat(d.harga) || 0),
+        })),
   };
+
+  // Kirim data ke backend
+  // createNota(formattedData);
+  createNota(formattedData, {
+    onSuccess: () => {
+            Swal.fire({
+              icon: "success",
+              title: "Success!",
+              text: "Nota created successfully!",
+              confirmButtonText: "Ok",
+            })
+          },
+          onError: (error) => {
+            if (axios.isAxiosError(error)) {
+              Swal.fire({
+                icon: "error",
+                title: "Failed!",
+                text: error.response?.data,
+                confirmButtonText: "Ok",
+              });
+            }
+          },
+  });
+
+  // Debugging
+  console.log("Payload:", formattedData);
+  
+  // Reset form setelah submit
+   reset({
+    ...data, // Biarkan data pembeli, alamat, tanggal, dan jatuh tempo tetap ada
+    details: [{ nama_barang: "", coly: 0, qty_isi: 0, nama_isi: "", harga: 0 }],
+  });
+
+  setBarang([]); // Kosongkan tabel setelah disimpan
+};
 
   const [barang, setBarang] = useState<
-  { nama_barang: string, coly: number, qty_isi: number, nama_isi: string, harga: string}[]
-  >([])
+  { nama_barang: string; coly: number; qty_isi: number; nama_isi: string; harga: number; jumlah: number; total: number }[]
+>([]);
 
-  const addDetail = () => {
-    setBarang([
-      ...barang,
-      {
-        // id: barang.length + 1, 
-        nama_barang: "",
-        coly: parseInt(barang.coly),
-        qty_isi: parseInt(barang.qty_isi),
-        nama_isi: "",
-        harga: "",
-      },
-    ]);
+const addDetail = () => {
+  const lastDetail = details[details.length - 1] || {};
+
+  const newItem = {
+    nama_barang: lastDetail.nama_barang || "",
+    coly: parseInt(lastDetail.coly) || 0,
+    qty_isi: parseInt(lastDetail.qty_isi) || 0,
+    nama_isi: lastDetail.nama_isi || "",
+    jumlah: (parseInt(lastDetail.coly) || 0) * (parseInt(lastDetail.qty_isi) || 0),
+    harga: parseFloat(lastDetail.harga) || 0,
+    total:
+      (parseInt(lastDetail.coly) || 0) * (parseInt(lastDetail.qty_isi) || 0) * (parseFloat(lastDetail.harga) || 0),
   };
 
+  // Tambahkan ke tabel barang
+  setBarang((prev) => [...prev, newItem]);
+
+  // Reset form input detail saja
+  setValue("details", [
+    { nama_barang: "", coly: "", qty_isi: "", nama_isi: "", harga: "" },
+  ]);
+};
+
+
    const columns: ColumnDef<any>[] = [
-      {accessorKey: "id", header: "No"},
+      {
+        id: 'no', 
+        header: "No",
+        cell: ({ row }) => row.index + 1,
+      },
       { accessorKey: "coly", header: "COLY" },
       {
         accessorKey: "isi",
@@ -204,8 +279,11 @@ const AddAllNota = () => {
                     </TableRow>
                     ))}
                 </TableBody>
-                <TableFooter className="flex justify-end p-3">
-                    <p className="text-lg font-semibold">Total: {totalHarga}</p>
+                <TableFooter>
+                  <TableRow>
+                    <TableCell colSpan={6}>Total</TableCell>
+                    <TableCell className="text-right">{totalHarga}</TableCell>
+                  </TableRow>
                 </TableFooter>
                 </Table>
           </Card>
@@ -242,12 +320,14 @@ const AddAllNota = () => {
             </div>
             
           ))}
-            <div className="flex justify-end mt-4">
-              <Button type="button" onClick={addDetail} className="flex items-center gap-2">
+            <div className="flex flex-col items-end mt-4 space-y-2">
+              <Button type="button" onClick={addDetail} className="flex items-center gap-2" disabled={barang.length >= 10}>
                 <PlusIcon size={16} /> Add
               </Button>
+              {barang.length >= 10 && (
+                <p className="text-red-500 text-sm">*Barang sudah mencapai batas maksimum</p>
+              )}
             </div>
-          
           </Card>
 
           </div>
