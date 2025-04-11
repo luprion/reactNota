@@ -5,24 +5,33 @@ export const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: '#fff',
     padding: 10,
-    fontSize: 10,
+    fontSize: 8,
+    paddingBottom: 30,
+    position: 'relative'
+  },
+  head: {
+    flexDirection: 'row', 
+    alignItems: 'flex-start', 
+    marginBottom: 5,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 5,
 
   },
   headerKanan: {
-    marginRight:10,
-    maxWidth: 130,
-    marginTop: 20
+    width: '40%',
+    alignItems: 'flex-start', 
+    marginTop: 10,
+    paddingLeft: 20,
   },
   title: {
     alignSelf: 'center',
     marginBottom: 10,
     textDecoration: 'underline',
     fontSize: 10,
+    fontWeight: 'bold',
   },
   tBold: {
     fontWeight: 'bold',
@@ -35,7 +44,7 @@ export const styles = StyleSheet.create({
     width: 'auto',
     borderStyle: 'solid',
     borderWidth: 1,
-    borderRightWidth: 0,
+    borderRightWidth: 1,
     borderBottomWidth: 0,
   },
   tableRow: {
@@ -52,15 +61,31 @@ export const styles = StyleSheet.create({
   tableCol: {
     width: '14.28%',
     borderStyle: 'solid',
-    borderBottomWidth: 1,
-    borderRightWidth: 1,
     padding: 3,
+  },
+  tableFooter: {
+    borderStyle: 'solid',
+    borderWidth: 1,
+
   },
   tableCell: {
     fontSize: 6,
   },
   image: {
     width: 100,
-    height: 'auto'
-  }
+    height: 'auto',
+    marginRight: 70
+  },
+  fixedFooter: {
+  position: 'absolute',
+  bottom: 0,  
+  height: 30,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+
+footerText: {
+  fontSize: 10,
+  color: '#000',
+}
 });

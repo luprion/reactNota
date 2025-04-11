@@ -23,7 +23,7 @@ const NotaList = () => {
       };
 
     const handleNavigate = (id: number) => {
-        navigate(`/nota/${id}/preview-nota`)
+        navigate(`/${id}/detail-nota`)
     }
 
     const columns = React.useMemo<ColumnDef<Nota>[]>(() => [

@@ -99,10 +99,10 @@ app.post("/nota", (req, res) => {
       const nota_id = result.insertId; // Dapatkan ID nota yang baru dibuat
 
       // Query untuk insert ke tabel detail_nota
-      const sqlDetail = "INSERT INTO detail_nota (nota_id, nama_barang, coly, qty_isi, nama_isi, jumlah, harga, total) VALUES ?";
+      const sqlDetail = "INSERT INTO detail_nota (nota_id, nama_barang, coly, qty_isi, nama_isi, jumlah, harga, diskon, total) VALUES ?";
 
       // Buat array dari details yang dikirim dalam request
-      const detailValues = details.map(item => [nota_id, item.nama_barang, item.coly, item.qty_isi, item.nama_isi, item.jumlah, item.harga, item.total]);
+      const detailValues = details.map(item => [nota_id, item.nama_barang, item.coly, item.qty_isi, item.nama_isi, item.jumlah, item.harga, item.diskon, item.total]);
 
       db.query(sqlDetail, [detailValues], (errDetail, resultDetail) => {
         if (errDetail) {

@@ -13,6 +13,7 @@ import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack
 import { useState } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const AddAllNota = () => {
   const currentDate = new Date();
@@ -28,18 +29,14 @@ const AddAllNota = () => {
       jt_tempo: "",
       pembeli: "",
       alamat: "",
-      details: [{ nama_barang: "", coly: "", qty_isi: "", nama_isi: "", harga: "" }],
+      details: [{ nama_barang: "", coly: "", qty_isi: "", nama_isi: "", harga: "", diskon: "" }],
     },
   });
 
   const { fields } = useFieldArray({ control, name: "details" });
 
   const details = watch("details", []);
-  const totalColy = details.reduce((sum, d) => sum + (parseInt(d.coly) || 0), 0);
-  const totalHarga = details.reduce(
-    (sum, d) => sum + (parseInt(d.coly) * parseInt(d.qty_isi) * parseFloat(d.harga) || 0),
-    0
-  );
+  // const totalColy = details.reduce((sum, d) => sum + (parseInt(d.coly) || 0), 0);
 
   // const onSubmit = (data) => {
   //   const formattedData = {
@@ -62,6 +59,26 @@ const AddAllNota = () => {
     
   // };
 
+const [diskonPersen, setDiskonPersen] = useState(0);
+  const [diskonRupiah, setDiskonRupiah] = useState(0);
+
+  const handleDiskonChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "persen" | "rupiah"
+  ) => {
+    const value = parseFloat(e.target.value) || 0;
+
+    if (type === "persen") {
+      const rupiah = (totalHarga * value) / 100;
+      setDiskonPersen(value);
+      setDiskonRupiah(rupiah);
+    } else {
+      const persen = (value / totalHarga) * 100;
+      setDiskonRupiah(value);
+      setDiskonPersen(persen);
+    }
+  };
+
     const onSubmit = (data) => {
       if (!barang.length) {
         console.error("Tidak ada barang yang bisa disimpan!");
@@ -71,19 +88,20 @@ const AddAllNota = () => {
       // Gabungkan data nota (dari form) dengan details (dari tabel barang)
       const formattedData = {
         ...data, // Data nota dari form (misal: id, tanggal, customer)
-        total_harga: barang.reduce((sum, item) => sum + item.total, 0), // Hitung total harga
-        total_coly: barang.reduce((sum, item) => sum + item.coly, 0), // Hitung total coly
+        total_harga: barang.reduce((sum, item) => sum + item.total, 0) - diskonRupiah, 
+        total_coly: barang.reduce((sum, item) => sum + item.coly, 0),
         details: barang.map((d) => ({
           nama_barang: d.nama_barang,
           coly: parseInt(d.coly) || 0,
           qty_isi: parseInt(d.qty_isi) || 0,
           nama_isi: d.nama_isi || "",
           harga: parseFloat(d.harga) || 0,
+          diskon: parseFloat(d.diskon) || 0,
           jumlah: (parseInt(d.coly) || 0) * (parseInt(d.qty_isi) || 0),
           total:
-            (parseInt(d.coly) || 0) *
+           ( (parseInt(d.coly) || 0) *
             (parseInt(d.qty_isi) || 0) *
-            (parseFloat(d.harga) || 0),
+            (parseFloat(d.harga) || 0)) * (1- (parseFloat(d.diskon) || 0) / 100),
         })),
   };
 
@@ -120,11 +138,17 @@ const AddAllNota = () => {
   });
 
   setBarang([]); // Kosongkan tabel setelah disimpan
+  setDiskonPersen(0);
+  setDiskonRupiah(0);
 };
 
   const [barang, setBarang] = useState<
-  { nama_barang: string; coly: number; qty_isi: number; nama_isi: string; harga: number; jumlah: number; total: number }[]
+  { nama_barang: string; coly: number; qty_isi: number; nama_isi: string; harga: number; jumlah: number; total: number; diskon: number; }[]
 >([]);
+
+  const totalHarga = barang.reduce((sum, item) => sum + item.total, 0);
+
+  const totalSetelahDiskon = totalHarga - diskonRupiah;
 
 const addDetail = () => {
   const lastDetail = details[details.length - 1] || {};
@@ -136,8 +160,12 @@ const addDetail = () => {
     nama_isi: lastDetail.nama_isi || "",
     jumlah: (parseInt(lastDetail.coly) || 0) * (parseInt(lastDetail.qty_isi) || 0),
     harga: parseFloat(lastDetail.harga) || 0,
+    diskon: parseFloat(lastDetail.diskon) || 0,
     total:
-      (parseInt(lastDetail.coly) || 0) * (parseInt(lastDetail.qty_isi) || 0) * (parseFloat(lastDetail.harga) || 0),
+      ((parseInt(lastDetail.coly) || 0) *
+      (parseInt(lastDetail.qty_isi) || 0) *
+      (parseFloat(lastDetail.harga) || 0)) *
+    (1 - (parseFloat(lastDetail.diskon) || 0) / 100)
   };
 
   // Tambahkan ke tabel barang
@@ -145,10 +173,13 @@ const addDetail = () => {
 
   // Reset form input detail saja
   setValue("details", [
-    { nama_barang: "", coly: "", qty_isi: "", nama_isi: "", harga: "" },
+    { nama_barang: "", coly: "", qty_isi: "", nama_isi: "", harga: "", diskon: "" },
   ]);
 };
 
+const handleDelete = (index: number) => {
+  setBarang((prevBarang) => prevBarang.filter((_, i) => i !== index));
+};
 
    const columns: ColumnDef<any>[] = [
       {
@@ -173,7 +204,20 @@ const addDetail = () => {
       },
       { accessorKey: "nama_barang", header: "NAMA BARANG" },
       { accessorKey: "harga", header: "HARGA" },
+      { accessorKey: "diskon", header: "DISC" },
       { accessorKey: "total", header: "TOTAL" },
+      {
+        id: "actions",
+        header: "Aksi",
+        cell: ({ row }) => (
+          <button
+            onClick={() => handleDelete(row.index)}
+            className="b-delete"
+          >
+            Delete
+          </button>
+        ),
+      },
       
     ];
 
@@ -281,8 +325,44 @@ const addDetail = () => {
                 </TableBody>
                 <TableFooter>
                   <TableRow>
-                    <TableCell colSpan={6}>Total</TableCell>
-                    <TableCell className="text-right">{totalHarga}</TableCell>
+                    <TableCell colSpan={7}>
+                      <div className="flex items-end gap-2">
+                        <Checkbox id="diskon" />
+                        <label htmlFor="diskon" className="text-sm font-medium">Diskon</label>
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="flex items-center">
+                        <Input
+                          type="number"
+                          value={diskonPersen}
+                          onChange={(e) => handleDiskonChange(e, "persen")}
+                          placeholder="%"
+                          className="w-20 text-right"
+                        />
+                        <span className="ml-1 px-2 py-1 bg-gray-200 rounded text-sm">%</span>
+                      </div>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="flex items-center">
+                        <Input
+                          type="number"
+                          value={diskonRupiah}
+                          onChange={(e) => handleDiskonChange(e, "rupiah")}
+                          placeholder="Rp"
+                          className="w-28 text-right"
+                        />
+                        <span className="ml-1 px-2 py-1 bg-gray-200 rounded text-sm">rp</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-right">Total </TableCell>
+                    <TableCell className="text-left">
+                      {totalSetelahDiskon.toLocaleString("id-ID")}
+                    </TableCell>
                   </TableRow>
                 </TableFooter>
                 </Table>
@@ -316,17 +396,19 @@ const addDetail = () => {
                 <p>Harga</p>
                     <Input type="number" {...register(`details.${index}.harga`)} placeholder="Harga" className="w-96" />
                 </div>
+                <div className="flex gap-14">
+                <p>Diskon</p>
+                    <Input defaultValue={0} type="number" {...register(`details.${index}.diskon`)} placeholder="0" className="w-90" />
+                    <p className="tBold">%</p>
+                </div>
               {/* <Button type="button" onClick={() => remove(index)}>Hapus</Button> */}
             </div>
             
           ))}
             <div className="flex flex-col items-end mt-4 space-y-2">
-              <Button type="button" onClick={addDetail} className="flex items-center gap-2" disabled={barang.length >= 10}>
+              <Button type="button" onClick={addDetail} className="flex items-center gap-2">
                 <PlusIcon size={16} /> Add
-              </Button>
-              {barang.length >= 10 && (
-                <p className="text-red-500 text-sm">*Barang sudah mencapai batas maksimum</p>
-              )}
+              </Button>            
             </div>
           </Card>
 

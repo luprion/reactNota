@@ -4,7 +4,6 @@ import { Document, Page, View, Text, PDFViewer, Image, pdf } from '@react-pdf/re
 import { styles } from './style';
 import { logo } from './image';
 import { useGetAllNota, useGetDetailNota } from '@/services/queries';
-import { useReactToPrint } from 'react-to-print';
 import { Button } from '@/components/ui/button';
 
 const MAX_ITEM_PER_PAGE = 10;
@@ -20,9 +19,9 @@ const chunkArray = (array: any[], size: number) => {
 const formatDate = (date: string) => {
   const d = new Date(date);
   const day = String(d.getDate()).padStart(2, '0');
-  const month = d.toLocaleString('id-ID', { month: 'long' });
+  const month = d.getMonth();
   const year = d.getFullYear();
-  return `${day} ${month} ${year}`;
+  return `${day}/${month}/${year}`;
 };
 
 export default function Preview() {
@@ -48,23 +47,67 @@ export default function Preview() {
   }
 };
 
+const columns = [
+  {
+    label: 'No',
+    width: '5%',
+    render: (_item: any, index: number, pageIndex: number) =>
+      pageIndex * MAX_ITEM_PER_PAGE + index + 1,
+  },
+  {
+    label: 'COLY',
+    width: '10%',
+    key: 'coly',
+  },
+  {
+    label: 'ISI',
+    width: '15%',
+    render: (item: any) => `${item.qty_isi} ${item.nama_isi}`,
+  },
+  {
+    label: 'JUMLAH',
+    width: '15%',
+    render: (item: any) => `${item.jumlah} ${item.nama_isi}`,
+  },
+  {
+    label: 'NAMA BARANG',
+    width: '25%',
+    key: 'nama_barang',
+  },
+  {
+    label: 'HARGA',
+    width: '15%',
+    render: (item: any) => `Rp. ${item.harga.toLocaleString()}`,
+  },
+  {
+    label: 'Disc',
+    width: '15%',
+    render: (item: any) => `Rp. ${item.diskon.toLocaleString()}`,
+  },
+  {
+    label: 'TOTAL',
+    width: '15%',
+    render: (item: any) => `Rp. ${item.total.toLocaleString()}`,
+  },
+];
+
   const NotaPDF = () => (
     <Document>
       
       {detailPages.map((page, pageIndex) => (
            <Page size="A6" orientation="landscape" style={styles.page} key={pageIndex}>
-          <View style={styles.title}>
-            <Text style={styles.tBold}>Nota</Text>
+          <View style={styles.head}>
+            <Image src={logo} style={styles.image} />
+            <Text style={styles.title}>Nota</Text>
           </View>
 
           <View style={styles.header}>
             <View>
-              <Image src={logo} style={styles.image} />
               <View style={{ marginTop: 5 }}>
                 {[
                   ['No Nota', nota.no_nota],
                   ['Tanggal', formatDate(nota.tanggal)],
-                  ['Jatuh Tempo', nota.jt_tempo],
+                  ['Tanggal J/T', formatDate(nota.jt_tempo)],
                 ].map(([label, value], index) => (
                   <View key={index} style={{ flexDirection: 'row', marginBottom: 4 }}>
                     <View style={{ width: 60 }}>
@@ -82,45 +125,66 @@ export default function Preview() {
             </View>
 
             <View style={styles.headerKanan}>
-              <Text style={styles.tBold}>Surabaya, </Text>
+              {/* <Text style={styles.tBold}>Surabaya, </Text> */}
               <Text>Kepada, Yth</Text>
-              <Text>{nota.pembeli}</Text>
-              <Text>{nota.alamat}</Text>
+              {[
+                [nota.pembeli],
+                [nota.alamat],                
+                ].map((value, index) => (
+                  <View key={index} style={{ flexDirection: 'row', marginBottom: 4 }}>
+                    <View style={{ width: 60 }}>
+                      <Text>{value}</Text>
+                    </View>
+                  </View>
+                ))}
             </View>
           </View>
 
           <View style={styles.table}>
             <View style={styles.tableRow}>
-              {['No', 'COLY', 'ISI', 'JUMLAH', 'NAMA BARANG', 'HARGA', 'TOTAL'].map((header, i) => (
-                <View style={styles.tableColHeader} key={i}>
-                  <Text style={styles.tableCell}>{header}</Text>
+              {columns.map((col, i) => (
+                <View key={i} style={[styles.tableColHeader, { width: col.width }]}>
+                  <Text style={styles.tableCell}>{col.label}</Text>
                 </View>
               ))}
             </View>
 
             {page.map((item, index) => (
               <View style={styles.tableRow} key={index}>
-                <View style={styles.tableCol}><Text style={styles.tableCell}>{pageIndex * MAX_ITEM_PER_PAGE + index + 1}</Text></View>
-                <View style={styles.tableCol}><Text style={styles.tableCell}>{item.coly}</Text></View>
-                <View style={styles.tableCol}><Text style={styles.tableCell}>{item.qty_isi} {item.nama_isi}</Text></View>
-                <View style={styles.tableCol}><Text style={styles.tableCell}>{item.jumlah} {item.nama_isi}</Text></View>
-                <View style={styles.tableCol}><Text style={styles.tableCell}>{item.nama_barang}</Text></View>
-                <View style={styles.tableCol}><Text style={styles.tableCell}>Rp. {item.harga.toLocaleString()}</Text></View>
-                <View style={styles.tableCol}><Text style={styles.tableCell}>Rp. {item.total.toLocaleString()}</Text></View>
+                {columns.map((col, colIndex) => {
+                  const content = col.render
+                    ? col.render(item, index, pageIndex)
+                    : item[col.key];
+
+                  return (
+                    <View key={colIndex} style={[styles.tableCol, { width: col.width }]}>
+                      <Text style={styles.tableCell}>{content}</Text>
+                    </View>
+                  );
+                })}
               </View>
             ))}
 
             {pageIndex === detailPages.length - 1 && (
-              <View style={styles.tableRow}>
-                <View style={[styles.tableCol, { width: '85.72%' }]}>
-                  <Text style={[styles.tableCell, styles.tBold]}>Total</Text>
+              <View>
+                <View style={[styles.tableRow, styles.tableFooter]}>
+                  <View style={[styles.tableCol, { width: '85.72%' }]}>
+                    <Text style={[ styles.tBold]}>Total</Text>
+                  </View>
+                  <View style={styles.tableCol}>
+                    <Text style={[ styles.tBold]}>Rp. {nota.total_harga.toLocaleString()}</Text>
+                  </View>
                 </View>
-                <View style={styles.tableCol}>
-                  <Text style={[styles.tableCell, styles.tBold]}>Rp. {nota.total_harga.toLocaleString()}</Text>
-                </View>
+
               </View>
             )}
           </View>
+
+          {pageIndex === detailPages.length - 1 && (
+            <View fixed style={styles.fixedFooter}>
+              <Text style={styles.footerText}>Terima kasih atas kepercayaannya.</Text>
+            </View>
+          )}
         </Page>
        
       ))}
@@ -128,13 +192,15 @@ export default function Preview() {
   );
 
   return (
-    <div style={{ height: '90vh' }}>
-      <Button className="no-print mb-4" onClick={() => handlePrint()}>Print Nota</Button>
-        <div id="print-area" className="print-area a6-landscape" style={{ height: '90vh' }}>
-          <PDFViewer width="100%" height="100%">
-            <NotaPDF />
-          </PDFViewer>               
-        </div>
+    <div className="container place-content-center mx-auto px-6 py-8">
+      <div style={{ height: '90vh' }}>
+        <Button className="no-print mb-4" onClick={() => handlePrint()}>Print Nota</Button>
+          <div id="print-area" className="print-area a6-landscape" style={{ height: '90vh' }}>
+            <PDFViewer width="100%" height="100%">
+              <NotaPDF />
+            </PDFViewer>               
+          </div>
+      </div>
     </div>
   );
 }
