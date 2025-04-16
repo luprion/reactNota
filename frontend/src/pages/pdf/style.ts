@@ -60,7 +60,7 @@ export const styles = StyleSheet.create({
   },
   tableCol: {
     width: '14.28%',
-    borderStyle: 'solid',
+    // borderStyle: 'solid',
     padding: 3,
   },
   tableFooter: {
@@ -78,14 +78,19 @@ export const styles = StyleSheet.create({
   },
   fixedFooter: {
   position: 'absolute',
-  bottom: 0,  
-  height: 30,
-  justifyContent: 'center',
+  bottom: 0,    
+  height: 50,
+  justifyContent: 'space-between',
   alignItems: 'center',
+  borderStyle: 'solid',
+  borderTopWidth: 1,
+  maxWidth: '97%',
 },
 
 footerText: {
-  fontSize: 10,
-  color: '#000',
+  fontSize: 9,
+  color: '#000',  
+  padding: 5,  
+  maxWidth: '55%'
 }
 });

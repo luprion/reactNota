@@ -6,6 +6,9 @@ export interface Nota {
     tanggal: string,
     pembeli: string,
     alamat: string,
+    subtotal: number;
+    diskon_persen: number;
+    diskon_rupiah: number;
     total_harga: number,
     total_coly: number,
     jt_tempo: string,

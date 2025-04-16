@@ -81,15 +81,15 @@ app.put("/nota/:id/status", (req, res) => {
 
 // tambah detail nota(validasi nota_id harus ada)
 app.post("/nota", (req, res) => {
-  const { no_nota, tanggal, pembeli, alamat, total_harga, total_coly, jt_tempo, details } = req.body;
+  const { no_nota, tanggal, pembeli, alamat, subtotal, diskon_persen, diskon_rupiah, total_harga, total_coly, jt_tempo, details } = req.body;
 
   // Query untuk insert ke tabel nota
-  const sqlNota = "INSERT INTO nota (no_nota, tanggal, pembeli, alamat, total_harga, total_coly, jt_tempo, status) VALUES (?, ?, ?, ?, ?, ?, ?, 1)";
+  const sqlNota = "INSERT INTO nota (no_nota, tanggal, pembeli, alamat, subtotal, diskon_persen, diskon_rupiah, total_harga, total_coly, jt_tempo, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)";
 
   db.beginTransaction((err) => {
     if (err) return response(500, err, "Transaction error", res);
 
-    db.query(sqlNota, [no_nota, tanggal, pembeli, alamat, total_harga, total_coly, jt_tempo], (error, result) => {
+    db.query(sqlNota, [no_nota, tanggal, pembeli, alamat, subtotal, diskon_persen, diskon_rupiah, total_harga, total_coly, jt_tempo], (error, result) => {
       if (error) {
         return db.rollback(() => {
           response(400, error, "Failed to create nota", res);

@@ -36,60 +36,45 @@ const AddAllNota = () => {
   const { fields } = useFieldArray({ control, name: "details" });
 
   const details = watch("details", []);
-  // const totalColy = details.reduce((sum, d) => sum + (parseInt(d.coly) || 0), 0);
 
-  // const onSubmit = (data) => {
-  //   const formattedData = {
-  //     ...data,
-  //     total_harga: totalHarga,
-  //     total_coly: totalColy,
-  //     details: data.details.map((d) => ({
-  //       ...d,
-  //       coly: parseInt(d.coly),
-  //       qty_isi: parseInt(d.qty_isi),
-  //       harga: parseFloat(d.harga),
-  //       jumlah: parseInt(d.coly) * parseInt(d.qty_isi),
-  //       total: parseInt(d.coly) * parseInt(d.qty_isi) * parseFloat(d.harga),
-  //     })),
-  //   };
-
-  //   createNota(formattedData);
-
-  //   console.log('payload', formattedData);
-    
-  // };
-
-const [diskonPersen, setDiskonPersen] = useState(0);
+  const [diskonPersen, setDiskonPersen] = useState(0);
   const [diskonRupiah, setDiskonRupiah] = useState(0);
 
   const handleDiskonChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    type: "persen" | "rupiah"
-  ) => {
-    const value = parseFloat(e.target.value) || 0;
+        e: React.ChangeEvent<HTMLInputElement>,
+        type: "persen" | "rupiah"
+      ) => {
+        const value = parseFloat(e.target.value) || 0;
 
-    if (type === "persen") {
-      const rupiah = (totalHarga * value) / 100;
-      setDiskonPersen(value);
-      setDiskonRupiah(rupiah);
-    } else {
-      const persen = (value / totalHarga) * 100;
-      setDiskonRupiah(value);
-      setDiskonPersen(persen);
-    }
+        if (type === "persen") {
+          const rupiah = (totalHarga * value) / 100;
+          setDiskonPersen(value);
+          setDiskonRupiah(rupiah);
+        } else {
+          const persen = (value / totalHarga) * 100;
+          setDiskonRupiah(value);
+          setDiskonPersen(persen);
+        }
   };
 
-    const onSubmit = (data) => {
+  const onSubmit = (data) => {
       if (!barang.length) {
         console.error("Tidak ada barang yang bisa disimpan!");
         return;
       }
 
+      const subtotal = barang.reduce((sum, item) => sum + item.total, 0); // total sebelum diskon
+      const total_harga = subtotal - diskonRupiah;
+      const total_coly = barang.reduce((sum, item) => sum + item.coly, 0);
+
       // Gabungkan data nota (dari form) dengan details (dari tabel barang)
       const formattedData = {
         ...data, // Data nota dari form (misal: id, tanggal, customer)
-        total_harga: barang.reduce((sum, item) => sum + item.total, 0) - diskonRupiah, 
-        total_coly: barang.reduce((sum, item) => sum + item.coly, 0),
+        subtotal,
+        diskon_persen: diskonPersen,
+        diskon_rupiah: diskonRupiah,
+        total_harga, 
+        total_coly,
         details: barang.map((d) => ({
           nama_barang: d.nama_barang,
           coly: parseInt(d.coly) || 0,
@@ -103,85 +88,87 @@ const [diskonPersen, setDiskonPersen] = useState(0);
             (parseInt(d.qty_isi) || 0) *
             (parseFloat(d.harga) || 0)) * (1- (parseFloat(d.diskon) || 0) / 100),
         })),
+      };
+
+      // Kirim data ke backend
+      // createNota(formattedData);
+      createNota(formattedData, {
+        onSuccess: (data) => {
+          console.log("response backend", data);
+                Swal.fire({
+                  icon: "success",
+                  title: "Success!",
+                  text: "Nota created successfully!",
+                  confirmButtonText: "Ok",
+                })
+              },
+              onError: (error) => {
+                if (axios.isAxiosError(error)) {
+                  Swal.fire({
+                    icon: "error",
+                    title: "Failed!",
+                    text: error.response?.data,
+                    confirmButtonText: "Ok",
+                  });
+                }
+              },
+      });
+
+      // Debugging
+      console.log("Payload:", formattedData);
+      
+      
+      // Reset form setelah submit
+      reset({
+        ...data, // Biarkan data pembeli, alamat, tanggal, dan jatuh tempo tetap ada
+        details: [{ nama_barang: "", coly: 0, qty_isi: 0, nama_isi: "", harga: 0 }],
+      });
+
+      setBarang([]); // Kosongkan tabel setelah disimpan
+      setDiskonPersen(0);
+      setDiskonRupiah(0);
   };
-
-  // Kirim data ke backend
-  // createNota(formattedData);
-  createNota(formattedData, {
-    onSuccess: () => {
-            Swal.fire({
-              icon: "success",
-              title: "Success!",
-              text: "Nota created successfully!",
-              confirmButtonText: "Ok",
-            })
-          },
-          onError: (error) => {
-            if (axios.isAxiosError(error)) {
-              Swal.fire({
-                icon: "error",
-                title: "Failed!",
-                text: error.response?.data,
-                confirmButtonText: "Ok",
-              });
-            }
-          },
-  });
-
-  // Debugging
-  console.log("Payload:", formattedData);
-  
-  // Reset form setelah submit
-   reset({
-    ...data, // Biarkan data pembeli, alamat, tanggal, dan jatuh tempo tetap ada
-    details: [{ nama_barang: "", coly: 0, qty_isi: 0, nama_isi: "", harga: 0 }],
-  });
-
-  setBarang([]); // Kosongkan tabel setelah disimpan
-  setDiskonPersen(0);
-  setDiskonRupiah(0);
-};
 
   const [barang, setBarang] = useState<
-  { nama_barang: string; coly: number; qty_isi: number; nama_isi: string; harga: number; jumlah: number; total: number; diskon: number; }[]
->([]);
+    { nama_barang: string; coly: number; qty_isi: number; nama_isi: string; harga: number; jumlah: number; total: number; diskon: number; }[]
+  >([]);
 
-  const totalHarga = barang.reduce((sum, item) => sum + item.total, 0);
+  const subtotal = barang.reduce((sum, item) => sum + item.total, 0);
 
-  const totalSetelahDiskon = totalHarga - diskonRupiah;
+  const totalHarga = subtotal - diskonRupiah;
 
-const addDetail = () => {
-  const lastDetail = details[details.length - 1] || {};
+  const addDetail = () => {
+    const lastDetail = details[details.length - 1] || {};
 
-  const newItem = {
-    nama_barang: lastDetail.nama_barang || "",
-    coly: parseInt(lastDetail.coly) || 0,
-    qty_isi: parseInt(lastDetail.qty_isi) || 0,
-    nama_isi: lastDetail.nama_isi || "",
-    jumlah: (parseInt(lastDetail.coly) || 0) * (parseInt(lastDetail.qty_isi) || 0),
-    harga: parseFloat(lastDetail.harga) || 0,
-    diskon: parseFloat(lastDetail.diskon) || 0,
-    total:
-      ((parseInt(lastDetail.coly) || 0) *
-      (parseInt(lastDetail.qty_isi) || 0) *
-      (parseFloat(lastDetail.harga) || 0)) *
-    (1 - (parseFloat(lastDetail.diskon) || 0) / 100)
+    const newItem = {
+      nama_barang: lastDetail.nama_barang || "",
+      coly: parseInt(lastDetail.coly) || 0,
+      qty_isi: parseInt(lastDetail.qty_isi) || 0,
+      nama_isi: lastDetail.nama_isi || "", 
+      jumlah: (parseInt(lastDetail.coly) || 0) * (parseInt(lastDetail.qty_isi) || 0),
+      harga: parseFloat(lastDetail.harga) || 0,
+      diskon: parseFloat(lastDetail.diskon) || 0,
+      total:
+        ((parseInt(lastDetail.coly) || 0) *
+        (parseInt(lastDetail.qty_isi) || 0) *
+        (parseFloat(lastDetail.harga) || 0)) *
+      (1 - (parseFloat(lastDetail.diskon) || 0) / 100)
+    };
+
+    // Tambahkan ke tabel barang
+    setBarang((prev) => [...prev, newItem]);
+
+    // Reset form input detail saja
+    setValue("details", [
+      { nama_barang: "", coly: "", qty_isi: "", nama_isi: "", harga: "", diskon: "" },
+    ]);
   };
 
-  // Tambahkan ke tabel barang
-  setBarang((prev) => [...prev, newItem]);
+  const handleDelete = (index: number) => {
+    setBarang((prevBarang) => prevBarang.filter((_, i) => i !== index));
+  };
 
-  // Reset form input detail saja
-  setValue("details", [
-    { nama_barang: "", coly: "", qty_isi: "", nama_isi: "", harga: "", diskon: "" },
-  ]);
-};
-
-const handleDelete = (index: number) => {
-  setBarang((prevBarang) => prevBarang.filter((_, i) => i !== index));
-};
-
-   const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<any>[] = [
       {
         id: 'no', 
         header: "No",
@@ -197,10 +184,7 @@ const handleDelete = (index: number) => {
         accessorKey: "jumlah",
         header: "JUMLAH",
         cell: ({ row }) => `${row.original.jumlah} ${row.original.nama_isi}`,
-        // cell: ({ row }) => {
-        //   const { jumlah, nama_isi } = row.original;
-        //   return `${jumlah} ${nama_isi}`;
-        // },
+
       },
       { accessorKey: "nama_barang", header: "NAMA BARANG" },
       { accessorKey: "harga", header: "HARGA" },
@@ -219,13 +203,13 @@ const handleDelete = (index: number) => {
         ),
       },
       
-    ];
+  ];
 
-    const table = useReactTable({
+  const table = useReactTable({
         data: barang ?? [],
         columns,
         getCoreRowModel: getCoreRowModel(),
-      });
+  });
 
   return (
     <div className="p-6 mx-auto">
@@ -300,7 +284,7 @@ const handleDelete = (index: number) => {
                 </div>
             </div>
 
-            <Table className="mb-2">
+            <Table className="mb-2">  
                 <TableHeader className="bg-neutral-200">
                     <TableRow>
                     {table.getHeaderGroups().map((headerGroup) =>
@@ -323,17 +307,12 @@ const handleDelete = (index: number) => {
                     </TableRow>
                     ))}
                 </TableBody>
-                <TableFooter>
+                <TableFooter >                                
                   <TableRow>
-                    <TableCell colSpan={7}>
-                      <div className="flex items-end gap-2">
-                        <Checkbox id="diskon" />
-                        <label htmlFor="diskon" className="text-sm font-medium">Diskon</label>
-                      </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex items-center">
+                    <TableCell colSpan={7} className="text-right"></TableCell>                                                              
+                    <TableCell className="text-left">  
+                      <div className="flex items-end">
+                        <span>Diskon : </span>
                         <Input
                           type="number"
                           value={diskonPersen}
@@ -341,12 +320,20 @@ const handleDelete = (index: number) => {
                           placeholder="%"
                           className="w-20 text-right"
                         />
-                        <span className="ml-1 px-2 py-1 bg-gray-200 rounded text-sm">%</span>
+                        <span className="ml-1 py-1 bg-gray-200 rounded text-sm"> %</span>                    
+                        {/* <span className="ml-1 py-1 bg-gray-200 rounded text-sm">Rp.</span>
+                        <Input
+                          type="number"
+                          value={diskonRupiah}
+                          onChange={(e) => handleDiskonChange(e, "rupiah")}
+                          placeholder="Rp"
+                          className="w-28 text-right"
+                        /> */}
                       </div>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex items-center">
+                    </TableCell>     
+                    <TableCell className="text-right ml-20">
+                      <div className="flex items-end">                                           
+                        <span className="ml-1 py-1 bg-gray-200 rounded text-sm">Rp.</span>
                         <Input
                           type="number"
                           value={diskonRupiah}
@@ -354,20 +341,24 @@ const handleDelete = (index: number) => {
                           placeholder="Rp"
                           className="w-28 text-right"
                         />
-                        <span className="ml-1 px-2 py-1 bg-gray-200 rounded text-sm">rp</span>
                       </div>
+                    </TableCell>               
+                  </TableRow>                                              
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-right">Total :</TableCell>
+                    <TableCell className="text-left">
+                     Rp. {totalHarga.toLocaleString("id-ID")}
                     </TableCell>
                   </TableRow>
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-right">Total </TableCell>
+                    <TableRow>
+                    <TableCell colSpan={8} className="text-right">Subtotal :</TableCell>
                     <TableCell className="text-left">
-                      {totalSetelahDiskon.toLocaleString("id-ID")}
+                     Rp. {subtotal.toLocaleString("id-ID")}
                     </TableCell>
                   </TableRow>
                 </TableFooter>
                 </Table>
           </Card>
-
 
           <Card className="p-6 max-w-md">
             <h2 className="text-lg font-bold text-center">Tambah Detail Barang</h2>

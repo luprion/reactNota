@@ -165,11 +165,28 @@ const columns = [
               </View>
             ))}
 
-            {pageIndex === detailPages.length - 1 && (
-              <View>
-                <View style={[styles.tableRow, styles.tableFooter]}>
-                  <View style={[styles.tableCol, { width: '85.72%' }]}>
-                    <Text style={[ styles.tBold]}>Total</Text>
+            {/* {pageIndex === detailPages.length - 1 && (
+              <View style={styles.tableFooter}>
+                
+                <View style={[styles.tableRow]}>
+                  <View style={[styles.tableCol, { width: '85%', textAlign: 'right' }]}>
+                    <Text style={[ styles.tBold]}>Diskon {nota.diskon_persen.toLocaleString()} % :</Text>
+                  </View>
+                  <View style={styles.tableCol}>
+                    <Text style={[ styles.tBold]}>Rp. {nota.diskon_rupiah.toLocaleString()}</Text>
+                  </View>              
+                </View>               
+                <View style={[styles.tableRow]}>
+                  <View style={[styles.tableCol, { width: '85%', textAlign: 'right' }]}>
+                    <Text style={[ styles.tBold]}>Subotal :</Text>
+                  </View>
+                  <View style={styles.tableCol}>
+                    <Text style={[ styles.tBold]}>Rp. {nota.subtotal.toLocaleString()}</Text>
+                  </View>
+                </View>
+                <View style={[styles.tableRow]}>
+                  <View style={[styles.tableCol, { width: '85%', textAlign: 'right' }]}>
+                    <Text style={[ styles.tBold]}>Total :</Text>
                   </View>
                   <View style={styles.tableCol}>
                     <Text style={[ styles.tBold]}>Rp. {nota.total_harga.toLocaleString()}</Text>
@@ -177,13 +194,48 @@ const columns = [
                 </View>
 
               </View>
-            )}
+            )} */}
           </View>
 
           {pageIndex === detailPages.length - 1 && (
-            <View fixed style={styles.fixedFooter}>
-              <Text style={styles.footerText}>Terima kasih atas kepercayaannya.</Text>
-            </View>
+           <View fixed style={styles.fixedFooter}>
+             <View>                              
+                <View style={[styles.tableRow]}>                  
+                  <View style={[styles.tableCol, { width: '73%', textAlign: 'left' }]}>
+                    <Text style={[ styles.tBold]}>Terimakasih Atas Transaksinya</Text>
+                  </View>
+                  <View style={[styles.tableCol, {  textAlign: 'right' }]}>
+                    <Text style={[ styles.tBold]}>Diskon {nota.diskon_persen.toLocaleString()} % :</Text>
+                  </View>
+                  <View style={styles.tableCol}>
+                    <Text style={[ styles.tBold]}>Rp. {nota.diskon_rupiah.toLocaleString()}</Text>
+                  </View>              
+                </View>               
+                <View style={[styles.tableRow]}>
+                  <View style={[styles.tableCol, { width: '73%', textAlign: 'left' }]}>
+                    <Text style={[ styles.tBold]}>Telepon: +625434644533</Text>
+                  </View>
+                  <View style={[styles.tableCol, { textAlign: 'right' }]}>
+                    <Text style={[ styles.tBold]}>Subotal :</Text>
+                  </View>
+                  <View style={styles.tableCol}>
+                    <Text style={[ styles.tBold]}>Rp. {nota.subtotal.toLocaleString()}</Text>
+                  </View>
+                </View>
+                <View style={[styles.tableRow]}>
+                  <View style={[styles.tableCol, { width: '73%', textAlign: 'left' }]}>
+                    <Text style={[ styles.tBold]}>Transfer BCA: 3639625434644533</Text>
+                  </View>
+                  <View style={[styles.tableCol, {  textAlign: 'right' }]}>
+                    <Text style={[ styles.tBold]}>Total :</Text>
+                  </View>
+                  <View style={styles.tableCol}>
+                    <Text style={[ styles.tBold]}>Rp. {nota.total_harga.toLocaleString()}</Text>
+                  </View>
+                </View>
+
+              </View>
+           </View>
           )}
         </Page>
        
