@@ -99,10 +99,10 @@ app.post("/nota", (req, res) => {
       const nota_id = result.insertId; // Dapatkan ID nota yang baru dibuat
 
       // Query untuk insert ke tabel detail_nota
-      const sqlDetail = "INSERT INTO detail_nota (nota_id, nama_barang, coly, qty_isi, nama_isi, jumlah, harga, diskon, total) VALUES ?";
+      const sqlDetail = "INSERT INTO detail_nota (nota_id, nama_barang, coly, satuan_coly, qty_isi, nama_isi, jumlah, harga, diskon, total) VALUES ?";
 
       // Buat array dari details yang dikirim dalam request
-      const detailValues = details.map(item => [nota_id, item.nama_barang, item.coly, item.qty_isi, item.nama_isi, item.jumlah, item.harga, item.diskon, item.total]);
+      const detailValues = details.map(item => [nota_id, item.nama_barang, item.coly, item.satuan_coly, item.qty_isi, item.nama_isi, item.jumlah, item.harga, item.diskon, item.total]);
 
       db.query(sqlDetail, [detailValues], (errDetail, resultDetail) => {
         if (errDetail) {
@@ -129,15 +129,15 @@ app.post("/nota", (req, res) => {
 // edit detail nota (validasi nota_id harus ada)
 app.put("/detail-nota/:id", (req, res) => {
   const { id } = req.params;
-  const { nota_id, nama_barang, coly, qty_isi, nama_isi, jumlah, harga, total } = req.body;
+  const { nota_id, nama_barang, coly, satuan_coly, qty_isi, nama_isi, jumlah, harga, total } = req.body;
 
   //cek nota_id
   db.query("SELECT id FROM nota WHERE id = ?", [nota_id], (error, result) => {
     if (error || result.length === 0) return response(400, "Invalid nota_id", "nota_id not found", res);
 
     // jika nota_id validn, update data
-    const sql = "UPDATE detail_nota SET nama_barang = ?, coly = ?, qty_isi = ?, nama_isi = ?, jumlah = ?, harga = ?, total = ? WHERE id = ? AND nota_id = ?";
-    db.query(sql, [nama_barang, coly, qty_isi, nama_isi, jumlah, harga, total, id, nota_id], (err, result) => {
+    const sql = "UPDATE detail_nota SET nama_barang = ?, coly = ?, satuan_coly = ?, qty_isi = ?, nama_isi = ?, jumlah = ?, harga = ?, total = ? WHERE id = ? AND nota_id = ?";
+    db.query(sql, [nama_barang, coly, satuan_coly, qty_isi, nama_isi, jumlah, harga, total, id, nota_id], (err, result) => {
       if (err) return response(400, err, "failed to update detail nota", res);
       response(200, { affectedRows: result.affectedRows }, "detail nota updated successfully", res);
     });

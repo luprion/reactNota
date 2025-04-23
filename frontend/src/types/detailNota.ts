@@ -3,6 +3,7 @@ export interface DetailNota {
     notaId: number,
     nama_barang: string,
     coly: number,
+    satuan_coly: string,
     qty_isi: number,
     nama_isi: string,
     jumlah: number,

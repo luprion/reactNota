@@ -7,9 +7,14 @@ import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { EyeIcon, PlusIcon, Trash2 } from 'lucide-react';
+import Swal from 'sweetalert2';
+import { useDeleteDetailNota } from '@/services/mutations';
+import { useQueryClient } from '@tanstack/react-query';
 
 const NotaList = () => {
     const { data } = useGetAllNota();
+    const queryClient = useQueryClient();
+    const { mutate: deleteDetail } = useDeleteDetailNota();
     const navigate = useNavigate();
     const [sorting, setSorting] = useState<SortingState>([]);
     const renderDate = (dateString: string) => {
@@ -26,6 +31,31 @@ const NotaList = () => {
         navigate(`/${id}/detail-nota`)
     }
 
+    const handleDelete = (id: number) => {
+    Swal.fire({
+        title: "Yakin ingin menghapus data ini?",
+        text: "Data akan disembunyikan (status = 0)",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Ya, hapus!",
+        cancelButtonText: "Batal",
+    }).then((result) => {
+        if (result.isConfirmed) {
+        deleteDetail(id, {
+            onSuccess: () => {
+            Swal.fire("Berhasil!", "Data telah dihapus.", "success");
+            queryClient.invalidateQueries({queryKey: ["nota"]})
+            }, 
+            onError: () => {
+            Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus.", "error");
+            },
+        });
+        }
+    });
+    };
+
     const columns = React.useMemo<ColumnDef<Nota>[]>(() => [
         { accessorKey: "id", header: "No" },
         { accessorKey: "pembeli", header: "Pembeli" },
@@ -39,14 +69,20 @@ const NotaList = () => {
                     <ToggleGroupItem value='lihat' className='toggle-lihat' onClick={() => handleNavigate(row.original.id)}>
                        <EyeIcon/> Lihat Detail  
                     </ToggleGroupItem>
-                    <ToggleGroupItem value='delete' className='toggle-delete'> <Trash2/> Delete</ToggleGroupItem>
+                    <ToggleGroupItem value='delete' className='toggle-delete' onClick={() => handleDelete(row.original.id)}> <Trash2/> Delete</ToggleGroupItem>
                 </ToggleGroup>
             )
         }
     ], []);
 
+    const sortedData = React.useMemo(() => {
+    if (!data) return [];
+
+    return [...data].sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
+    }, [data]);
+
     const table = useReactTable({
-        data: data ?? [],
+        data: sortedData,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),

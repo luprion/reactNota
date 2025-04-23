@@ -34,7 +34,13 @@ const DetailNota = () => {
     {id: 'no', 
         header: "No",
         cell: ({ row }) => row.index + 1,},
-    { accessorKey: "coly", header: "COLY" },
+    { accessorKey: "nama_barang", header: "NAMA BARANG" },
+    { accessorKey: "coly", header: "COLY",
+      cell: ({row}) => {
+        const { coly, satuan_coly } = row.original;
+        return `${coly} ${satuan_coly}`;
+      }
+     },
     {
       accessorKey: "isi",
       header: "ISI",
@@ -51,10 +57,19 @@ const DetailNota = () => {
         return `${jumlah} ${nama_isi}`;
       },
     },
-    { accessorKey: "nama_barang", header: "NAMA BARANG" },
-    { accessorKey: "harga", header: "HARGA" },
-    { accessorKey: "diskon", header: "DISC" },
-    { accessorKey: "total", header: "TOTAL" },
+    { accessorKey: "harga", header: "HARGA",
+      cell: ({row}) => {
+        const harga = row.original.harga;
+        return `${harga.toLocaleString("id-ID")}`
+      }
+     },
+    { accessorKey: "diskon", header: "% DISC" },
+    { accessorKey: "total", header: "SUBTOTAL",
+      cell: ({row}) => {
+        const total = row.original.total;
+        return `${total.toLocaleString("id-ID")}`
+      }
+     },
     // {
     //   id: "actions",
     //   header: "Aksi",
@@ -118,7 +133,7 @@ const DetailNota = () => {
           <TableFooter>
             <TableRow>
               <TableCell colSpan={7}>Total</TableCell>
-             <TableCell className="mr-32 font-bold">Rp. {nota?.total_harga}</TableCell>
+             <TableCell className="mr-32 font-bold">Rp. {nota?.total_harga.toLocaleString("id-ID")}</TableCell>
             </TableRow>
           </TableFooter>
         </Table>

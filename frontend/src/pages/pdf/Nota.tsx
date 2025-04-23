@@ -50,44 +50,59 @@ export default function Preview() {
 const columns = [
   {
     label: 'No',
+    textAlignHeader: 'left',
     width: '5%',
     render: (_item: any, index: number, pageIndex: number) =>
       pageIndex * MAX_ITEM_PER_PAGE + index + 1,
   },
   {
-    label: 'COLY',
-    width: '10%',
-    key: 'coly',
-  },
-  {
-    label: 'ISI',
-    width: '15%',
-    render: (item: any) => `${item.qty_isi} ${item.nama_isi}`,
-  },
-  {
-    label: 'JUMLAH',
-    width: '15%',
-    render: (item: any) => `${item.jumlah} ${item.nama_isi}`,
-  },
-  {
     label: 'NAMA BARANG',
+    textAlignHeader: 'left',
     width: '25%',
     key: 'nama_barang',
   },
   {
-    label: 'HARGA',
-    width: '15%',
-    render: (item: any) => `Rp. ${item.harga.toLocaleString()}`,
+    label: 'COLY',
+    width: '10%',
+    textAlign: 'right',
+    render: (item: any) => `${item.coly} ${item.satuan_coly}`,
   },
   {
-    label: 'Disc',
+    label: 'ISI',
     width: '15%',
-    render: (item: any) => `Rp. ${item.diskon.toLocaleString()}`,
+    textAlign: 'right',
+    // render: (item: any) => `@ ${item.qty_isi} ${item.nama_isi}`,
+    render: (item: any) => (
+    <View style={{ flexDirection: 'row' }}>
+  <Text style={{ width: 30, textAlign: 'left' }}> </Text>
+  <Text style={{ width: 10, textAlign: 'right' }}>@ </Text>
+  <Text style={{ marginLeft: 4 }}>{item.qty_isi} {item.nama_isi}</Text>
+</View>
+  ),
+  },
+  {
+    label: 'TOTAL QTY',
+    width: '15%',
+    textAlign: 'right',
+    render: (item: any) => `${item.jumlah} ${item.nama_isi}`,
+  },
+  {
+    label: 'HARGA',
+    width: '15%',
+    textAlign: 'right',
+    render: (item: any) => `${item.harga.toLocaleString()}`,
+  },
+  {
+    label: '% Disc',
+    textAlign: 'right',
+    width: '15%',
+    render: (item: any) => `${item.diskon.toLocaleString()}`,
   },
   {
     label: 'TOTAL',
     width: '15%',
-    render: (item: any) => `Rp. ${item.total.toLocaleString()}`,
+    textAlign: 'right',
+    render: (item: any) => `${item.total.toLocaleString()}`,
   },
 ];
 
@@ -98,7 +113,7 @@ const columns = [
            <Page size="A6" orientation="landscape" style={styles.page} key={pageIndex}>
           <View style={styles.head}>
             <Image src={logo} style={styles.image} />
-            <Text style={styles.title}>Nota</Text>
+            <Text style={styles.title}>FAKTUR</Text>
           </View>
 
           <View style={styles.header}>
@@ -144,7 +159,7 @@ const columns = [
             <View style={styles.tableRow}>
               {columns.map((col, i) => (
                 <View key={i} style={[styles.tableColHeader, { width: col.width }]}>
-                  <Text style={styles.tableCell}>{col.label}</Text>
+                  <Text style={[styles.tableCell, { textAlign: col.textAlignHeader || 'center' }]}>{col.label}</Text>
                 </View>
               ))}
             </View>
@@ -158,7 +173,7 @@ const columns = [
 
                   return (
                     <View key={colIndex} style={[styles.tableCol, { width: col.width }]}>
-                      <Text style={styles.tableCell}>{content}</Text>
+                      <Text style={[styles.tableCell, { textAlign: col.textAlign || 'left' }]}>{content}</Text>
                     </View>
                   );
                 })}
@@ -200,9 +215,13 @@ const columns = [
           {pageIndex === detailPages.length - 1 && (
            <View fixed style={styles.fixedFooter}>
              <View>                              
-                <View style={[styles.tableRow]}>                  
-                  <View style={[styles.tableCol, { width: '73%', textAlign: 'left' }]}>
-                    <Text style={[ styles.tBold]}>Terimakasih Atas Transaksinya</Text>
+                <View style={[styles.tableRow]}>     
+                  {/* pertama */}
+                  <View style={[styles.tableCol, { width: '77', textAlign: 'left' }]}>
+                    <Text style={[ styles.tBold]}>Hormat Kami,</Text>
+                  </View>
+                  <View style={[styles.tableCol, { width: '53%', textAlign: 'center' }]}>
+                    <Text style={[ styles.tBold]}>Bila sudah jatuh tempo mohon transfer ke </Text>
                   </View>
                   <View style={[styles.tableCol, {  textAlign: 'right' }]}>
                     <Text style={[ styles.tBold]}>Diskon {nota.diskon_persen.toLocaleString()} % :</Text>
@@ -210,10 +229,14 @@ const columns = [
                   <View style={styles.tableCol}>
                     <Text style={[ styles.tBold]}>Rp. {nota.diskon_rupiah.toLocaleString()}</Text>
                   </View>              
-                </View>               
+                </View>       
+
                 <View style={[styles.tableRow]}>
-                  <View style={[styles.tableCol, { width: '73%', textAlign: 'left' }]}>
-                    <Text style={[ styles.tBold]}>Telepon: +625434644533</Text>
+                  <View style={[styles.tableCol, { width: '20%', textAlign: 'left' }]}>
+                    <Text style={[ styles.tBold]}></Text>
+                  </View>
+                  <View style={[styles.tableCol, { width: '53%', textAlign: 'center' }]}>
+                    <Text style={[ styles.tBold]}>BCA: 8650 577 397, BRI: 0440 0101 3845 504</Text>
                   </View>
                   <View style={[styles.tableCol, { textAlign: 'right' }]}>
                     <Text style={[ styles.tBold]}>Subotal :</Text>
@@ -222,9 +245,14 @@ const columns = [
                     <Text style={[ styles.tBold]}>Rp. {nota.subtotal.toLocaleString()}</Text>
                   </View>
                 </View>
+
+
                 <View style={[styles.tableRow]}>
-                  <View style={[styles.tableCol, { width: '73%', textAlign: 'left' }]}>
-                    <Text style={[ styles.tBold]}>Transfer BCA: 3639625434644533</Text>
+                  <View style={[styles.tableCol, { width: '20%', textAlign: 'left' }]}>
+                    <Text style={[ styles.tBold]}>(                    )</Text>
+                  </View>
+                  <View style={[styles.tableCol, { width: '53%', textAlign: 'center' }]}>
+                    <Text style={[ styles.tBold]}>A/N: NANI, Terima kasih</Text>
                   </View>
                   <View style={[styles.tableCol, {  textAlign: 'right' }]}>
                     <Text style={[ styles.tBold]}>Total :</Text>

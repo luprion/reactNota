@@ -48,6 +48,6 @@ export const updateDetailNota = async (id: number, nota_id: number, detailNota: 
   
 // Delete (soft-delete) a detail nota by changing its status to 0
 export const deleteDetailNota = async (id: number) => {
-    const { data } = await axios.put(`${BASE_URL}/detail-nota/${id}/status`);
+    const { data } = await axios.put(`${BASE_URL}/nota/${id}/status`);
     return data.payload.datas;
 };
