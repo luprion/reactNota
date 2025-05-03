@@ -39,6 +39,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@ag-media/react-pdf-table": "^2.0.2",
     "@eslint/js": "^9.21.0",
     "@types/node": "^22.13.10",
     "@types/react": "^19.0.10",

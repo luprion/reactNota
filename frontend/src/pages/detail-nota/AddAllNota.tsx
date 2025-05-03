@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { CalendarIcon, PlusIcon, PrinterIcon, SaveIcon } from "lucide-react";
-import { format } from "date-fns";
+import { addMonths, format } from "date-fns";
 import { useCreateNota } from "@/services/mutations";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -19,14 +19,16 @@ const AddAllNota = () => {
   const currentDate = new Date();
   const formattedNoNota = format(currentDate, "yyyyMMddHHmmss");
   const formatDate = (date: Date) => format(date, "yyyy-MM-dd");
+  const tanggal = new Date();
+  const tempo = addMonths(tanggal, 2)
 
   const { mutate: createNota, isPending } = useCreateNota();
 
   const { register, handleSubmit, control, watch, setValue, reset } = useForm({
     defaultValues: {
       no_nota: formattedNoNota,
-      tanggal: formatDate(new Date()),
-      jt_tempo: "",
+      tanggal: formatDate(tanggal),
+      jt_tempo: formatDate(tempo),
       pembeli: "",
       alamat: "",
       details: [{ nama_barang: "", coly: "", satuan_coly: "", qty_isi: "", nama_isi: "", harga: "", diskon: "" }],
@@ -295,9 +297,9 @@ const AddAllNota = () => {
             <Input {...register("pembeli")} placeholder="Masukkan Nama Pembeli" />
             <Input {...register("alamat")} placeholder="Masukkan Alamat" />
             <div className="flex flex-col sm:flex-row items-start sm:items-end gap-2 mt-4">
-              <Button className="flex items-center gap-2">
+              {/* <Button className="flex items-center gap-2">
                 <PrinterIcon size={16} /> Print
-              </Button>
+              </Button> */}
               <Button type="submit" className="flex items-center gap-2" disabled={isPending}>
                 <SaveIcon size={16} /> {isPending ? "Saving..." : "Save"}
               </Button>
@@ -338,7 +340,7 @@ const AddAllNota = () => {
             <TableRow>
               <TableCell colSpan={6} className="text-right"></TableCell>
               <TableCell className="text-left">
-                <div className="flex flex-col sm:flex-row items-start sm:items-end">
+                <div className="flex flex-col sm:flex-row items-start text-sm sm:items-end">
                   <span>Diskon : </span>
                   <Input
                     type="number"
@@ -365,14 +367,14 @@ const AddAllNota = () => {
               </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell colSpan={8} className="text-right">Subtotal :</TableCell>
-              <TableCell className="text-left">
+              <TableCell colSpan={8} className="text-right text-sm">Subtotal :</TableCell>
+              <TableCell className="text-left text-sm">
                 Rp. {subtotal.toLocaleString("id-ID")}
               </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell colSpan={8} className="text-right">Total :</TableCell>
-              <TableCell className="text-left">
+              <TableCell colSpan={8} className="text-right text-sm">Total :</TableCell>
+              <TableCell className="text-left text-sm">
                 Rp. {totalHarga.toLocaleString("id-ID")}
               </TableCell>
             </TableRow>

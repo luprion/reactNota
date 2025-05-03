@@ -28,7 +28,7 @@ const NotaList = () => {
       };
 
     const handleNavigate = (id: number) => {
-        navigate(`/${id}/detail-nota`)
+        navigate(`/${id}/generate-nota`)
     }
 
     const handleDelete = (id: number) => {

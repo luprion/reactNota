@@ -5,7 +5,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: '#fff',
     padding: 10,
-    fontSize: 8,
+    fontSize: 7.5,
     paddingBottom: 30,
     position: 'relative'
   },
@@ -78,8 +78,9 @@ export const styles = StyleSheet.create({
   },
   fixedFooter: {
   position: 'absolute',
-  bottom: 0,    
-  height: 50,
+  bottom: 2,  
+  marginBottom: 2,  
+  height: 65,
   justifyContent: 'space-between',
   alignItems: 'center',
   borderStyle: 'solid',
@@ -92,5 +93,23 @@ footerText: {
   color: '#000',  
   padding: 5,  
   maxWidth: '55%'
+},
+
+tb:{
+ borderWidth:0,
+ borderColor: 'transparent'
+},
+
+th: {
+  // backgroundColor: "#e5e5e5",
+  padding: "1px",
+  fontSize: "6px",
+  borderTop: "0.5px solid black",
+  borderBottom: "0.5px solid black"
+},
+
+td: {
+  padding: 1.5
 }
+
 });
