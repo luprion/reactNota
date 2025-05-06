@@ -66,10 +66,10 @@ const NotaList = () => {
             header: "Actions",
             cell: ({ row }) => (
                 <ToggleGroup type='single' className=' gap-2 '>
-                    <ToggleGroupItem value='lihat' className='toggle-lihat' onClick={() => handleNavigate(row.original.id)}>
+                    <ToggleGroupItem value='lihat' className='toggle-lihat' onClick={() => handleNavigate(row.original.id!)}>
                        <EyeIcon/> Lihat Detail  
                     </ToggleGroupItem>
-                    <ToggleGroupItem value='delete' className='toggle-delete' onClick={() => handleDelete(row.original.id)}> <Trash2/> Delete</ToggleGroupItem>
+                    <ToggleGroupItem value='delete' className='toggle-delete' onClick={() => handleDelete(row.original.id!)}> <Trash2/> Delete</ToggleGroupItem>
                 </ToggleGroup>
             )
         }

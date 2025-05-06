@@ -1,4 +1,3 @@
-import React, { useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
   Document,
@@ -35,10 +34,11 @@ const formatDate = (date: string) => {
 
 export default function Generate() {
   const { notaId } = useParams();
+   const parsedNotaId = notaId ? Number(notaId) : undefined;
   const { data: notaList } = useGetAllNota();
-  const { data: details } = useGetDetailNota(notaId);
+  const { data: details } = useGetDetailNota(parsedNotaId!);
 
-  const nota = notaList?.find((n) => n.id === Number(notaId));
+  const nota = notaList?.find((n) => n.id === parsedNotaId);
 
   // JANGAN render PDF sebelum data lengkap
   if (!nota || !details) return <div>Loading...</div>;
@@ -189,7 +189,7 @@ export default function Generate() {
                   key={index}
                   style={{ flexDirection: "row", marginTop: 3 }}
                 >
-                  <View style={{ width: 60 }}>
+                  <View style={{ width: 80 }}>
                     <Text>{value}</Text>
                   </View>
                 </View>
@@ -275,12 +275,12 @@ export default function Generate() {
                   <View style={styles.priceRow}>
                     <Text style={styles.label}>SUBTOTAL</Text>
                     <Text style={{ marginLeft: 3 }}>:</Text>
-                    <Text style={styles.value}>Rp. 20.017.800</Text>
+                    <Text style={styles.value}>Rp. {nota.subtotal.toLocaleString()}</Text>
                   </View>
                   <View style={styles.priceRow}>
                     <Text style={styles.label}>TOTAL</Text>
                     <Text style={{ marginLeft: 3 }}>:</Text>
-                    <Text style={styles.value}>Rp. 20.017.800</Text>
+                    <Text style={styles.value}>Rp. {nota.total_harga.toLocaleString()}</Text>
                   </View>
                 </View>
               </View>

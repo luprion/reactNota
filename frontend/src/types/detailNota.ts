@@ -1,6 +1,6 @@
 export interface DetailNota {
-    id: number,
-    notaId: number,
+    id?: number,
+    notaId?: number,
     nama_barang: string,
     coly: number,
     satuan_coly: string,

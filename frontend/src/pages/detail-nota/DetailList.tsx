@@ -8,11 +8,12 @@ import { useReactToPrint } from "react-to-print";
  
 const DetailNota = () => {
   const { notaId } = useParams();
+  const parsedNotaId = notaId ? Number(notaId) : undefined;
   const { data: notaList } = useGetAllNota();
-  const nota = notaList?.find((nota) => nota.id === Number(notaId));
+  const nota = notaList?.find((nota) => nota.id === parsedNotaId);
   console.log(nota, "si nnota");
   
-  const { data: details,  } = useGetDetailNota(notaId);
+  const { data: details,  } = useGetDetailNota(parsedNotaId!);
 
   const renderDate = (dateString: string) => {
         if (!dateString) return "Unknown Date";

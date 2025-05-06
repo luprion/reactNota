@@ -1,4 +1,4 @@
-import { Nota } from "@/types/nota";
+import { Nota, NotaPayload } from "@/types/nota";
 import { DetailNota } from "@/types/detailNota";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createDetailNota, createNota, deleteDetailNota, updateDetailNota, updateNota } from "./api";
@@ -10,7 +10,7 @@ export function useCreateNota() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationKey: ["createNota"],
-        mutationFn: (notaData) => createNota(notaData),
+        mutationFn: (notaData: NotaPayload) => createNota(notaData),
 
         onError: () =>{
             console.log("error");            

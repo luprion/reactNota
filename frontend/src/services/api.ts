@@ -2,7 +2,7 @@ import axios from "axios";
 import { Nota } from "@/types/nota";
 import { DetailNota } from "@/types/detailNota";
 
-const BASE_URL = "http://localhost:3000"
+const BASE_URL = import.meta.env.VITE_API_URL
 
 export const getAllNota = async (): Promise<(Nota[])> => {
     const {data} = await axios.get(`${BASE_URL}/`);

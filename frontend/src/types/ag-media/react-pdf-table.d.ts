@@ -4,6 +4,8 @@ declare module '@ag-media/react-pdf-table' {
 
   export interface TableProps {
     children?: React.ReactNode;
+    tdStyle?: React.CSSProperties;
+    weightings?: number[];
     width?: string;
     style?: React.CSSProperties;
   }

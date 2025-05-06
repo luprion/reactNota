@@ -2,7 +2,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { CalendarIcon, PlusIcon, PrinterIcon, SaveIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon, SaveIcon } from "lucide-react";
 import { addMonths, format } from "date-fns";
 import { useCreateNota } from "@/services/mutations";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -13,7 +13,24 @@ import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack
 import { useState } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
-import { Checkbox } from "@/components/ui/checkbox";
+import { NotaPayload } from "@/types/nota";
+
+export type NotaFormData = {
+  no_nota: string;
+  tanggal: string;
+  jt_tempo: string;
+  pembeli: string;
+  alamat: string;
+  details: {
+    nama_barang: string;
+    coly: string;
+    satuan_coly: string;
+    qty_isi: string;
+    nama_isi: string;
+    harga: string;
+    diskon: string;
+  }[];
+};
 
 const AddAllNota = () => {
   const currentDate = new Date();
@@ -59,84 +76,174 @@ const AddAllNota = () => {
         }
   };
 
-  const onSubmit = (data) => {
-      if (!barang.length) {
-        console.error("Tidak ada barang yang bisa disimpan!");
-        return;
-      }
+  // const onSubmit = (data) => {
+  //     if (!barang.length) {
+  //       console.error("Tidak ada barang yang bisa disimpan!");
+  //       return;
+  //     }
 
-      const subtotal = barang.reduce((sum, item) => sum + item.total, 0); // total sebelum diskon
-      const total_harga = subtotal - diskonRupiah;
-      const total_coly = barang.reduce((sum, item) => sum + item.coly, 0);
+  //     const subtotal = barang.reduce((sum, item) => sum + item.total, 0); // total sebelum diskon
+  //     const total_harga = subtotal - diskonRupiah;
+  //     const total_coly = barang.reduce((sum, item) => sum + item.coly, 0);
 
-      // Gabungkan data nota (dari form) dengan details (dari tabel barang)
-      const formattedData = {
-        ...data, // Data nota dari form (misal: id, tanggal, customer)
-        subtotal,
-        diskon_persen: diskonPersen,
-        diskon_rupiah: diskonRupiah,
-        total_harga, 
-        total_coly,
-        details: barang.map((d) => ({
-          nama_barang: d.nama_barang,
-          coly: parseInt(d.coly) || 0,
-          satuan_coly: d.satuan_coly || "",
-          qty_isi: parseInt(d.qty_isi) || 0,
-          nama_isi: d.nama_isi || "",
-          harga: parseFloat(d.harga) || 0,
-          diskon: parseFloat(d.diskon) || 0,
-          jumlah: (parseInt(d.coly) || 0) * (parseInt(d.qty_isi) || 0),
-          total:
-           ( (parseInt(d.coly) || 0) *
-            (parseInt(d.qty_isi) || 0) *
-            (parseFloat(d.harga) || 0)) * (1- (parseFloat(d.diskon) || 0) / 100),
-        })),
+  //     // Gabungkan data nota (dari form) dengan details (dari tabel barang)
+  //     const formattedData = {
+  //       ...data, // Data nota dari form (misal: id, tanggal, customer)
+  //       subtotal,
+  //       diskon_persen: diskonPersen,
+  //       diskon_rupiah: diskonRupiah,
+  //       total_harga, 
+  //       total_coly,
+  //       details: barang.map((d) => ({
+  //         nama_barang: d.nama_barang,
+  //         coly: parseInt(d.coly) || 0,
+  //         satuan_coly: d.satuan_coly || "",
+  //         qty_isi: parseInt(d.qty_isi) || 0,
+  //         nama_isi: d.nama_isi || "",
+  //         harga: parseFloat(d.harga) || 0,
+  //         diskon: parseFloat(d.diskon) || 0,
+  //         jumlah: (parseInt(d.coly) || 0) * (parseInt(d.qty_isi) || 0),
+  //         total:
+  //          ( (parseInt(d.coly) || 0) *
+  //           (parseInt(d.qty_isi) || 0) *
+  //           (parseFloat(d.harga) || 0)) * (1- (parseFloat(d.diskon) || 0) / 100),
+  //       })),
+  //     };
+
+  //     // Kirim data ke backend
+  //     // createNota(formattedData);
+  //     createNota(formattedData, {
+  //       onSuccess: (data) => {
+  //         console.log("response backend", data);
+  //         const notaId = data.payload.datas.nota_id;
+  //               Swal.fire({
+  //                 icon: "success",
+  //                 title: "Success!",
+  //                 text: "Nota created successfully!",
+  //                 confirmButtonText: "Ok",
+  //               }).then((result) => {
+  //                 if (result.isConfirmed) {
+  //                   // Buka halaman preview/print di tab baru
+  //                   window.open(`/${notaId}/generate-nota`, "_blank");
+  //                 }
+  //               });
+  //             },
+  //             onError: (error) => {
+  //               if (axios.isAxiosError(error)) {
+  //                 Swal.fire({
+  //                   icon: "error",
+  //                   title: "Failed!",
+  //                   text: error.response?.data,
+  //                   confirmButtonText: "Ok",
+  //                 });
+  //               }
+  //             },
+  //     });
+
+  //     // Debugging
+  //     console.log("Payload:", formattedData);
+      
+      
+  //     // Reset form setelah submit
+  //     reset({
+  //       ...data, // Biarkan data pembeli, alamat, tanggal, dan jatuh tempo tetap ada
+  //       details: [{ nama_barang: "", coly: 0, satuan_coly: "", qty_isi: 0, nama_isi: "", harga: 0 }],
+  //     });
+
+  //     setBarang([]); // Kosongkan tabel setelah disimpan
+  //     setDiskonPersen(0);
+  //     setDiskonRupiah(0);
+  // };
+
+  const onSubmit = (data: NotaFormData) => {
+  if (!barang.length) {
+    console.error("Tidak ada barang yang bisa disimpan!");
+    return;
+  }
+
+  const subtotal = barang.reduce((sum, item) => sum + Number(item.total || 0), 0);
+  const total_harga = subtotal - diskonRupiah;
+  const total_coly = barang.reduce((sum, item) => sum + Number(item.coly || 0), 0);
+
+  const formattedData: NotaPayload = {
+    ...data,
+    subtotal,
+    diskon_persen: diskonPersen,
+    diskon_rupiah: diskonRupiah,
+    total_harga,
+    total_coly,
+    details: barang.map((d) => {
+      const coly = Number(d.coly) || 0;
+      const qty_isi = Number(d.qty_isi) || 0;
+      const harga = Number(d.harga) || 0;
+      const diskon = Number(d.diskon) || 0;
+
+      const jumlah = coly * qty_isi;
+      const total = jumlah * harga * (1 - diskon / 100);
+
+      return {
+        nama_barang: d.nama_barang,
+        coly,
+        satuan_coly: d.satuan_coly,
+        qty_isi,
+        nama_isi: d.nama_isi,
+        harga,
+        diskon,
+        jumlah,
+        total,
       };
-
-      // Kirim data ke backend
-      // createNota(formattedData);
-      createNota(formattedData, {
-        onSuccess: (data) => {
-          console.log("response backend", data);
-          const notaId = data.payload.datas.nota_id;
-                Swal.fire({
-                  icon: "success",
-                  title: "Success!",
-                  text: "Nota created successfully!",
-                  confirmButtonText: "Ok",
-                }).then((result) => {
-                  if (result.isConfirmed) {
-                    // Buka halaman preview/print di tab baru
-                    window.open(`/${notaId}/preview-nota`, "_blank");
-                  }
-                });
-              },
-              onError: (error) => {
-                if (axios.isAxiosError(error)) {
-                  Swal.fire({
-                    icon: "error",
-                    title: "Failed!",
-                    text: error.response?.data,
-                    confirmButtonText: "Ok",
-                  });
-                }
-              },
-      });
-
-      // Debugging
-      console.log("Payload:", formattedData);
-      
-      
-      // Reset form setelah submit
-      reset({
-        ...data, // Biarkan data pembeli, alamat, tanggal, dan jatuh tempo tetap ada
-        details: [{ nama_barang: "", coly: 0, satuan_coly: "", qty_isi: 0, nama_isi: "", harga: 0 }],
-      });
-
-      setBarang([]); // Kosongkan tabel setelah disimpan
-      setDiskonPersen(0);
-      setDiskonRupiah(0);
+    }),
   };
+
+  createNota(formattedData, {
+    onSuccess: (data) => {
+      const notaId = data.payload.datas.nota_id;
+      Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "Nota created successfully!",
+        confirmButtonText: "Ok",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.open(`/${notaId}/generate-nota`, "_blank");
+        }
+      });
+    },
+    onError: (error) => {
+      if (axios.isAxiosError(error)) {
+        Swal.fire({
+          icon: "error",
+          title: "Failed!",
+          text: error.response?.data,
+          confirmButtonText: "Ok",
+        });
+      }
+    },
+  });
+
+  console.log("Payload:", formattedData);
+
+  reset({
+    ...data,
+    details: [
+      {
+        nama_barang: "",
+        coly: "",
+        satuan_coly: "",
+        qty_isi: "",
+        nama_isi: "",
+        harga: "",
+        diskon: "",
+      },
+    ],
+  });
+
+  setBarang([]);
+  setDiskonPersen(0);
+  setDiskonRupiah(0);
+};
+
+
 
   const [barang, setBarang] = useState<
     { nama_barang: string; coly: number; satuan_coly: string; qty_isi: number; nama_isi: string; harga: number; jumlah: number; total: number; diskon: number; }[]
@@ -264,7 +371,7 @@ const AddAllNota = () => {
                   <Calendar
                     mode="single"
                     selected={new Date(watch("tanggal"))}
-                    onSelect={(date) => setValue("tanggal", formatDate(date))}
+                    onSelect={(date) => setValue("tanggal", date ? formatDate(date): "")}
                     className="bg-white text-black [&_*]:!bg-white [&_*]:!text-black [&_.day-selected]:!bg-blue-500"
                   />
                 </PopoverContent>
@@ -284,7 +391,7 @@ const AddAllNota = () => {
                   <Calendar
                     mode="single"
                     selected={watch("jt_tempo") ? new Date(watch("jt_tempo")) : undefined}
-                    onSelect={(date) => setValue("jt_tempo", formatDate(date))}
+                    onSelect={(date) => setValue("jt_tempo", date ? formatDate(date) : "")}
                     className="bg-white text-black [&_*]:!bg-white [&_*]:!text-black [&_.day-selected]:!bg-blue-500"
                   />
                 </PopoverContent>
@@ -312,7 +419,7 @@ const AddAllNota = () => {
             <TableRow>
               {table.getHeaderGroups().map((headerGroup) =>
                 headerGroup.headers.map((header) => {
-                  const width = header.column.columnDef.meta?.width;
+                  const width = (header.column.columnDef.meta as { width?: string })?.width;
                   return (
                     <TableCell key={header.id} style={{ width }}>
                       {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -326,7 +433,8 @@ const AddAllNota = () => {
             {table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => {
-                  const width = cell.column.columnDef.meta?.width;
+                  // const width = cell.column.columnDef.meta?.width;
+                  const width = (cell.column.columnDef.meta as { width?: string })?.width;
                   return (
                     <TableCell key={cell.id} style={{ width }}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}

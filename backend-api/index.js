@@ -6,7 +6,9 @@ const bodyParser = require("body-parser");
 const db = require("./database/db");
 const response = require("./response");
 
-app.use(cors());
+app.use(cors({
+  origin: "https://helya.luminaraprismatica.com/"
+}));
 
 app.use(bodyParser.json());
 

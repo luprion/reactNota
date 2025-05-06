@@ -1,7 +1,7 @@
 import { DetailNota } from "./detailNota";
 
 export interface Nota {
-    id: number,
+    id?: number,
     no_nota: string,
     tanggal: string,
     pembeli: string,
@@ -14,6 +14,11 @@ export interface Nota {
     jt_tempo: string,
     details: DetailNota[],
 }
+
+export interface NotaPayload extends Omit<Nota, "id" | "details"> {
+  details: Omit<DetailNota, "notaId">[];
+}
+
 
 export interface Pagination {
     totalCount: number;
