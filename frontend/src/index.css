@@ -47,18 +47,55 @@
   font-size: 10px;
 }
 
-.b-delete{
+.b-delete {
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
   color: #f9f9f9;
   background-color: #c82333;
 }
-.b-delete:hover{
-  border-color: #c82333;
+.b-delete:hover {
+  border-color: #000000;
+}
+.b-simpan {
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
 }
 
+.b-edit {
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  color: #f9f9f9;
+  background-color: #ead408;
+}
+.b-edit:hover {
+  border-color: #000000;
+}
+
+.b-simpan{
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  color: #f9f9f9;
+  background-color: #035703;
+}
+.b-batal{
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  color: #f9f9f9;
+  background-color: #353333;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
 
 @custom-variant dark (&:is(.dark *));
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Courier Prime", monospace;
   line-height: 1.5;
   font-weight: 400;
 
@@ -138,11 +175,11 @@ h1 {
 button {
   border-radius: 8px;
   border: 1px solid transparent;
-  padding: 0.6em 1.2em;
+  /* padding: 0.6em 1.2em;
   font-size: 1em;
-  font-weight: 500;
+  font-weight: 500; */
   font-family: inherit;
-  background-color: #1a1a1a;
+  /* background-color: #1a1a1a; */
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -156,6 +193,7 @@ button:focus-visible {
 
 /* Warna untuk tombol Lihat Detail */
 .toggle-lihat {
+  padding: 0.6em 1.2em;
   background-color: #007bff; /* Biru */
   color: white;
 }
@@ -166,6 +204,7 @@ button:focus-visible {
 
 /* Warna untuk tombol Edit */
 .toggle-edit {
+  padding: 0.6em 1.2em;
   background-color: #ffc107; /* Kuning */
   color: black;
 }
@@ -176,6 +215,7 @@ button:focus-visible {
 
 /* Warna untuk tombol Delete */
 .toggle-delete {
+  padding: 0.6em 1.2em;
   background-color: #dc3545; /* Merah */
   color: white;
 }
@@ -296,4 +336,19 @@ button:focus-visible {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
+input[type="date"] {
+  background-color: white;
+  padding-right: 2.5rem;
 }

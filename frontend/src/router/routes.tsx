@@ -1,30 +1,31 @@
 import { createBrowserRouter } from "react-router-dom";
 import NotaList from "@/pages/nota/NotaList.tsx";
-import DetailNota from "@/pages/detail-nota/DetailList";
-import AddAllNota from "@/pages/detail-nota/AddAllNota";
-import Generate from "@/pages/pdf/Generate";
+import DetailNota from "@/pages/pdf/DetailNota";
+import PrintNota from "@/pages/pdf/PrintNota";
+import NotaPage from "@/pages/detail-nota/NotaPage";
 
-const routes = createBrowserRouter([
+const routes = createBrowserRouter(
+  [
     {
-        path: '/',
-        element: <NotaList/>
+      path: "/",
+      element: <NotaList />,
     },
     {
-        path: '/tambah-nota',
-        element: <AddAllNota/>
+      path: "/tambah-nota",
+      element: <NotaPage />,
     },
     {
-        path: '/:notaId/detail-nota',
-        element: <DetailNota/>
+      path: "/:notaId/preview-nota",
+      element: <DetailNota />,
     },
     {
-        path: '/nota/tambah-nota',
-        element: <AddAllNota/>
+      path: "/:notaId/print",
+      element: <PrintNota />,
     },
-    {
-        path: '/:notaId/generate-nota',
-        element: <Generate/>
-    },
-])
+  ],
+  {
+    basename: "/nota/frontend",
+  }
+);
 
-export default routes
+export default routes;

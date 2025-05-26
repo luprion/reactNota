@@ -12,6 +12,9 @@ export interface Nota {
     total_harga: number,
     total_coly: number,
     jt_tempo: string,
+    status: number,
+    created_at: string,
+    updated_at: string,
     details: DetailNota[],
 }
 

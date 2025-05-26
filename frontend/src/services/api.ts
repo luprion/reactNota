@@ -9,6 +9,11 @@ export const getAllNota = async (): Promise<(Nota[])> => {
     return data.payload.datas;
 }
 
+export const getNotaNumber = async () => {
+    const {data} = await axios.get(`${BASE_URL}/nota/next-number`);
+    return data.payload.datas;
+}
+
 export const createNota = async (notaData: Nota) => {
     const {data} = await axios.post(`${BASE_URL}/nota`, notaData);
     return data;
