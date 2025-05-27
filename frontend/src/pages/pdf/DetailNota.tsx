@@ -378,11 +378,11 @@ const DetailNota = () => {
 
   // Fungsi untuk hitung ulang detail
   const calculateDetail = (item: any) => {
-    const coly = parseInt(item.coly) || 0;
-    const qty_isi = parseInt(item.qty_isi) || 0;
+    const coly = parseFloat(Number(item.coly).toFixed(2)) || 0;
+    const qty_isi = parseFloat(Number(item.qty_isi).toFixed(2)) || 0;
     const harga = parseFloat(item.harga) || 0;
     const diskon = parseFloat(item.diskon) || 0;
-
+  
     const jumlah = coly * qty_isi;
     const total = jumlah * harga * (1 - diskon / 100);
 

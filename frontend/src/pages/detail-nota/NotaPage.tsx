@@ -14,6 +14,19 @@ import {
   XIcon,
 } from "lucide-react";
 
+export type  BarangDetail = {
+  nama_barang: string;
+  coly: number;
+  satuan_coly: string;
+  qty_isi: number;
+  nama_isi: string;
+  harga: number;
+  diskon: number;
+  jumlah: number;
+  total: number;
+};
+
+
 const NotaPage = () => {
   const formatDate = (date) => format(date, "yyyy-MM-dd");
 
@@ -36,15 +49,15 @@ const NotaPage = () => {
     },
   });
 
-  const [barang, setBarang] = useState([]);
+  const [barang, setBarang] = useState<BarangDetail[]>([]);
   const [formDetail, setFormDetail] = useState({
     nama_barang: "",
-    coly: 0,
+    coly: 0.00,
     satuan_coly: "",
-    qty_isi: 0,
+    qty_isi: 0.00,
     nama_isi: "",
-    harga: 0,
-    diskon: 0,
+    harga: 0.00,
+    diskon: 0.00,
   });
 
   const [editIndex, setEditIndex] = useState(null);
@@ -54,8 +67,8 @@ const NotaPage = () => {
 
   const totalBarang = barang.map((item) => ({
     ...item,
-    jumlah: item.coly * item.qty_isi,
-    total: item.coly * item.qty_isi * item.harga * (1 - item.diskon / 100),
+    jumlah: parseFloat(Number(item.coly).toFixed(2)) * parseFloat(Number(item.qty_isi).toFixed(2)),
+    total: parseFloat(Number(item.coly).toFixed(2)) * parseFloat(Number(item.qty_isi).toFixed(2)) * parseFloat(Number(item.harga).toFixed(2)) * (1 - item.diskon / 100),
   }));
 
   const subtotal = totalBarang.reduce((sum, item) => sum + item.total, 0);
@@ -174,17 +187,19 @@ const NotaPage = () => {
   const inputTempo = useRef<HTMLInputElement>(null);
 
   const addDetail = () => {
-    const jumlah = formDetail.coly * formDetail.qty_isi;
-    const total = jumlah * formDetail.harga * (1 - formDetail.diskon / 100);
-    setBarang([...barang, { ...formDetail, jumlah, total }]);
+    const jumlah = parseFloat((formDetail.coly * formDetail.qty_isi).toFixed(2));
+    const total =
+      jumlah *
+      parseFloat(formDetail.harga.toFixed(2)) *
+      (1 - parseFloat(formDetail.diskon.toFixed(2)) / 100);   setBarang([...barang, { ...formDetail, jumlah, total }]);
     setFormDetail({
       nama_barang: "",
-      coly: 0,
+      coly: 0.00,
       satuan_coly: "",
-      qty_isi: 0,
+      qty_isi: 0.00,
       nama_isi: "",
-      harga: 0,
-      diskon: 0,
+      harga: 0.00,
+      diskon: 0.00,
     });
     inputNamaBarang.current?.focus();
   };
@@ -477,12 +492,12 @@ const NotaPage = () => {
                   <div className="flex gap-2">
                     <Input
                       type="text"
-                      value={item.coly}
+                      value={item.coly.toFixed(2)}
                       onFocus={(e) => e.target.select()}
-                      step={0.00}
+                      // step={0.00}
                       onChange={(e) => {
-                        // const raw = parseNumericInput(e.target);
-                        const newColy = Number(+e.target.value);
+                        const value = parseFloat(e.target.value.replace(",", "."));
+                        const newColy = isNaN(value) ? 0 : parseFloat(value.toFixed(2));
                         const newList = [...barang];
                         newList[index].coly = newColy;
                         newList[index].jumlah =
@@ -505,11 +520,11 @@ const NotaPage = () => {
                   <div className="flex gap-2">
                     <Input
                       type="text"
-                      value={item.qty_isi}
+                      value={item.qty_isi.toFixed(2)}
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => {
-                        const raw = +e.target.value.replace(/\D/g, "");
-                        const newQty = Number(raw);
+                        const value = parseFloat(e.target.value.replace(",", "."));
+                        const newQty = isNaN(value) ? 0 : parseFloat(value.toFixed(2));
                         const newList = [...barang];
                         newList[index].qty_isi = newQty;
                         newList[index].jumlah = newList[index].coly * newQty;
@@ -533,11 +548,11 @@ const NotaPage = () => {
                 <td className="p-2 text-right">
                   <Input
                     type="text"
-                    value={item.harga}
+                    value={item.harga.toFixed(2)}
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => {
-                      const raw = e.target.value.replace(/\D/g, ""); // Hanya angka
-                      const newHarga = Number(raw); // Hilangkan nol di depan otomatis
+                      const value = parseFloat(e.target.value.replace(",", "."));
+                      const newHarga = isNaN(value) ? 0 : parseFloat(value.toFixed(2));
                       const newList = [...barang];
                       newList[index].harga = newHarga;
                       newList[index].total =
@@ -549,11 +564,11 @@ const NotaPage = () => {
                 <td className="p-2 text-right">
                   <Input
                     type="text"
-                    value={item.diskon}
+                    value={item.diskon.toFixed(2)}
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => {
-                      const raw = +e.target.value.replace(/\D/g, "");
-                      const newDiskon = Number(raw);
+                      const value = parseFloat(e.target.value.replace(",", "."));
+                      const newDiskon = isNaN(value) ? 0 : parseFloat(value.toFixed(2));
                       const newList = [...barang];
                       newList[index].diskon = newDiskon;
                       newList[index].total =
@@ -596,14 +611,14 @@ const NotaPage = () => {
                   <input
                     type="number"
                     className="w-1/2 border px-2 py-1 uppercase"
-                    value={formDetail.coly}
+                    value={formDetail.coly.toFixed(2)}
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => {
-                      const raw = +e.target.value.replace(/\D/g, "");
-                      const value = Number(raw);
+                      // const raw = +e.target.value.replace(/\D/g, "");
+                      const value = parseFloat(e.target.value) || 0;
                       setFormDetail({
                         ...formDetail,
-                        coly: parseFloat(value) || 0,
+                        coly: value,
                       });
                     }}
                   />
@@ -624,14 +639,14 @@ const NotaPage = () => {
                   <input
                     type="number"
                     className="w-1/2 border px-2 py-1"
-                    value={formDetail.qty_isi}
-                    step={0.00392156863}
+                    value={formDetail.qty_isi.toFixed(2)}
+                    // step={0.00392156863}
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => {
-                      const value = +e.target.value;
+                      const value = parseFloat(e.target.value) || 0;
                       setFormDetail({
                         ...formDetail,
-                        qty_isi: parseFloat(value) || 0,
+                        qty_isi: value,
                       });
                     }}
                   />
@@ -654,14 +669,14 @@ const NotaPage = () => {
                 <input
                   type="text"
                   className="w-full border px-2 py-1"
-                  value={formDetail.harga}
+                  value={formDetail.harga.toFixed(2)}
                   onFocus={(e) => e.target.select()}
                   onChange={(e) => {
-                    const raw = +e.target.value.replace(/\D/g, "");
-                    const value = Number(raw);
+                    const raw = e.target.value.replace(/\D/g, "");
+                    const value = parseFloat(raw) || 0;
                     setFormDetail({
                       ...formDetail,
-                      harga: parseFloat(value) || 0,
+                      harga: value,
                     });
                   }}
                 />
@@ -673,11 +688,11 @@ const NotaPage = () => {
                   value={formDetail.diskon}
                   onFocus={(e) => e.target.select()}
                   onChange={(e) => {
-                    const raw = +e.target.value.replace(/\D/g, "");
-                    const val = Number(raw);
+                    const raw = e.target.value.replace(/\D/g, "");
+                    const val = parseFloat(raw) || 0;
                     setFormDetail({
                       ...formDetail,
-                      diskon: parseFloat(val) || 0,
+                      diskon: val,
                     });
                   }}
                 />
