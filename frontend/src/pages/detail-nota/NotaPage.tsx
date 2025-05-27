@@ -672,8 +672,7 @@ const NotaPage = () => {
                   value={formDetail.harga.toFixed(2)}
                   onFocus={(e) => e.target.select()}
                   onChange={(e) => {
-                    const raw = e.target.value.replace(/\D/g, "");
-                    const value = parseFloat(raw) || 0;
+                    const value = parseFloat(e.target.value) || 0;
                     setFormDetail({
                       ...formDetail,
                       harga: value,
@@ -685,14 +684,13 @@ const NotaPage = () => {
                 <input
                   type="text"
                   className="w-full border px-2 py-1"
-                  value={formDetail.diskon}
+                  value={formDetail.diskon.toFixed(2)}
                   onFocus={(e) => e.target.select()}
                   onChange={(e) => {
-                    const raw = e.target.value.replace(/\D/g, "");
-                    const val = parseFloat(raw) || 0;
+                    const value = parseFloat(e.target.value) || 0;
                     setFormDetail({
                       ...formDetail,
-                      diskon: val,
+                      diskon: value,
                     });
                   }}
                 />
