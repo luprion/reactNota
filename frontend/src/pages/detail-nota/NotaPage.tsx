@@ -64,7 +64,7 @@ const NotaPage = () => {
 
   useEffect(() => {
     const fetchNoNota = async () => {
-      const res = await fetch("http://localhost:3001/nota/next-number");
+      const res = await fetch("http://localhost:3000/nota/next-number");
       const data = await res.json();
       const noNotaFormatted = data.no_nota;
       // console.log(noNotaFormatted, "no nota");
