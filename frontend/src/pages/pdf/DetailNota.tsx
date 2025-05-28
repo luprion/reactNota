@@ -456,12 +456,16 @@ const DetailNota = () => {
   };
 
   const handleDetailChange = (id: number, field: string, value: any) => {
+    const formattedValue = typeof value === 'string' ? value.replace(',', '.') : value;
+    
     setDetails((prevDetails) =>
       prevDetails.map((item) =>
         item.id === id
           ? calculateDetail({
               ...item,
-              [field]: value,
+              [field]: isNaN(parseFloat(formattedValue)) ? 0 : parseFloat(formattedValue),
+            // To keep original input string for display, store raw input too
+            [`${field}_raw`]: value,
             })
           : item
       )
@@ -574,12 +578,17 @@ const DetailNota = () => {
           editIndex === row.index ? (
             <div className="flex gap-1">
               <Input
-                value={Number(row.original.coly).toFixed(2)}
-                onFocus={(e) => e.target.select()}
-                onChange={(e) =>
-                  handleDetailChange(row.original.id, "coly", e.target.value)
-                }
-                className="w-15"
+                  value={
+                    row.original.coly_raw !== undefined
+                      ? row.original.coly_raw
+                      : row.original.coly.toString().replace(".", ",")
+                  }
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) => {
+                    const input = e.target.value;
+                    handleDetailChange(row.original.id, "coly", input);
+                  }}
+                  className="w-15"
               />
               <Input
                 value={row.original.satuan_coly}
@@ -595,7 +604,7 @@ const DetailNota = () => {
             </div>
           ) : (
             <div className="flex gap-1">
-              <p>{Number(row.original.coly).toFixed(2)}</p>
+              <p>{row.original.coly}</p>
               <p>{row.original.satuan_coly}</p>
             </div>
           ),
@@ -607,18 +616,19 @@ const DetailNota = () => {
         cell: ({ row }) =>
           editIndex === row.index ? (
             <div className="flex gap-1">
-              <Input
-                value={Number(row.original.qty_isi).toFixed(2)}
-                onFocus={(e) => e.target.select()}
-                onChange={(e) =>
-                  handleDetailChange(
-                    row.original.id,
-                    "qty_isi",
-                    parseFloat(e.target.value) || 0
-                  )
-                }
-                className="w-15"
-              />
+             <Input
+              value={
+                row.original.qty_isi_raw !== undefined
+                  ? row.original.qty_isi_raw
+                  : row.original.qty_isi.toString().replace(".", ",")
+              }
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => {
+                const input = e.target.value;
+                handleDetailChange(row.original.id, "qty_isi", input);
+              }}
+              className="w-15"
+            />
               <Input
                 value={row.original.nama_isi}
                 onChange={(e) =>
@@ -633,7 +643,7 @@ const DetailNota = () => {
             </div>
           ) : (
             <div className="flex gap-1">
-              <p>{Number(row.original.qty_isi).toFixed(2)}</p>
+              <p>{row.original.qty_isi}</p>
               <p>{row.original.nama_isi}</p>
             </div>
           ),
@@ -656,13 +666,18 @@ const DetailNota = () => {
         cell: ({ row }) =>
           editIndex === row.index ? (
             <Input
-              value={row.original.harga}
-              onFocus={(e) => e.target.select()}
-              onChange={(e) =>
-                handleDetailChange(row.original.id, "harga", e.target.value)
-              }
-              className="w-24"
-            />
+            value={
+              row.original.harga_raw !== undefined
+                ? row.original.harga_raw
+                : row.original.harga.toString().replace(".", ",")
+            }
+            onFocus={(e) => e.target.select()}
+            onChange={(e) => {
+              const input = e.target.value;
+              handleDetailChange(row.original.id, "harga", input);
+            }}
+            className="w-24"
+          />
           ) : (
             row.original.harga.toLocaleString("id-ID")
           ),
