@@ -12,28 +12,34 @@ import {
   PencilIcon,
   TrashIcon,
   XIcon,
+  Plus,
+  CirclePercent,
 } from "lucide-react";
-
-export type  BarangDetail = {
-  nama_barang: string;
-  coly: number;
-  satuan_coly: string;
-  qty_isi: number;
-  nama_isi: string;
-  harga: number;
-  diskon: number;
-  jumlah: number;
-  total: number;
-};
-
 
 const NotaPage = () => {
   const formatDate = (date) => format(date, "yyyy-MM-dd");
 
+  const getDiskonBertumpuk = (hargaAwal: number, diskonList?: number[]) => {
+    if (!Array.isArray(diskonList) || diskonList.length === 0) return hargaAwal;
+    return diskonList.reduce((harga, diskon) => {
+      const persen = isNaN(diskon) ? 0 : diskon;
+      return harga - harga * (persen / 100);
+    }, hargaAwal);
+  };
+
+  const normalizeNumber = (val: string | number): number => {
+    if (typeof val === "string") {
+      return parseFloat(val.replace(",", ".")) || 0;
+    }
+    return Number(val) || 0;
+  };
+
   function formatRibuan(angka: number | string): string {
     const num = typeof angka === "string" ? parseFloat(angka) : angka;
     if (isNaN(num)) return "0";
-    return num.toLocaleString("id-ID");
+    return num.toLocaleString("id-ID", {
+      maximumFractionDigits: 2,
+    });
   }
 
   const now = new Date();
@@ -49,15 +55,15 @@ const NotaPage = () => {
     },
   });
 
-  const [barang, setBarang] = useState<BarangDetail[]>([]);
+  const [barang, setBarang] = useState([]);
   const [formDetail, setFormDetail] = useState({
     nama_barang: "",
-    coly: 0.00,
+    coly: 0,
     satuan_coly: "",
-    qty_isi: 0.00,
+    qty_isi: 0,
     nama_isi: "",
-    harga: 0.00,
-    diskon: 0.00,
+    harga: 0,
+    diskon: [],
   });
 
   const [editIndex, setEditIndex] = useState(null);
@@ -67,11 +73,19 @@ const NotaPage = () => {
 
   const totalBarang = barang.map((item) => ({
     ...item,
-    jumlah: parseFloat(Number(item.coly).toFixed(2)) * parseFloat(Number(item.qty_isi).toFixed(2)),
-    total: parseFloat(Number(item.coly).toFixed(2)) * parseFloat(Number(item.qty_isi).toFixed(2)) * parseFloat(Number(item.harga).toFixed(2)) * (1 - item.diskon / 100),
+    harga: normalizeNumber(item.harga),
+    total: getDiskonBertumpuk(
+      normalizeNumber(item.harga) *
+        normalizeNumber(item.coly) *
+        normalizeNumber(item.qty_isi),
+      item.diskon
+    ),
   }));
 
-  const subtotal = totalBarang.reduce((sum, item) => sum + item.total, 0);
+  const subtotal = totalBarang.reduce(
+    (sum, item) => normalizeNumber(sum) + normalizeNumber(item.total),
+    0
+  );
   const totalHarga = subtotal - diskonRupiah;
   const totalColy = totalBarang.reduce((sum, item) => sum + item.coly, 0);
 
@@ -80,9 +94,7 @@ const NotaPage = () => {
       const res = await fetch("http://localhost:3000/nota/next-number");
       const data = await res.json();
       const noNotaFormatted = data.no_nota;
-      // console.log(noNotaFormatted, "no nota");
 
-      // Masukkan hasil ke form
       setValue("no_nota", noNotaFormatted);
     };
 
@@ -104,6 +116,7 @@ const NotaPage = () => {
       total_coly: totalColy,
       details: totalBarang,
     };
+    console.log(payload);
 
     createNota(payload, {
       onSuccess: (res) => {
@@ -148,33 +161,33 @@ const NotaPage = () => {
     setDiskonRupiah(0);
   };
 
-  const handleCancel = () => {
-    setFormDetail({
-      nama_barang: "",
-      coly: 0,
-      satuan_coly: "",
-      qty_isi: 0,
-      nama_isi: "",
-      harga: 0,
-      diskon: 0,
-    });
-    setEditIndex(null);
-  };
+  // const handleCancel = () => {
+  //   setFormDetail({
+  //     nama_barang: "",
+  //     coly: 0,
+  //     satuan_coly: "",
+  //     qty_isi: 0,
+  //     nama_isi: "",
+  //     harga: 0,
+  //     diskon: 0,
+  //   });
+  //   setEditIndex(null);
+  // };
 
-  const handleEdit = (index) => {
-    // setFormDetail(barang[index]);
-    setEditIndex(index);
-  };
+  // const handleEdit = (index) => {
+  //   // setFormDetail(barang[index]);
+  //   setEditIndex(index);
+  // };
 
-  const saveEdit = (index) => {
-    const updatedBarang = [...barang];
-    const item = updatedBarang[index];
-    item.jumlah = item.coly * item.qty_isi;
-    item.total = item.jumlah * item.harga * (1 - item.diskon / 100);
-    updatedBarang[index] = item;
-    setBarang(updatedBarang);
-    setEditIndex(null);
-  };
+  // const saveEdit = (index) => {
+  //   const updatedBarang = [...barang];
+  //   const item = updatedBarang[index];
+  //   item.jumlah = item.coly * item.qty_isi;
+  //   item.total = item.jumlah * item.harga * (1 - item.diskon / 100);
+  //   updatedBarang[index] = item;
+  //   setBarang(updatedBarang);
+  //   setEditIndex(null);
+  // };
 
   const removeDetail = (index) => {
     const newList = [...barang];
@@ -187,26 +200,35 @@ const NotaPage = () => {
   const inputTempo = useRef<HTMLInputElement>(null);
 
   const addDetail = () => {
-    const jumlah = parseFloat((formDetail.coly * formDetail.qty_isi).toFixed(2));
-    const total =
-      jumlah *
-      parseFloat(formDetail.harga.toFixed(2)) *
-      (1 - parseFloat(formDetail.diskon.toFixed(2)) / 100);   setBarang([...barang, { ...formDetail, jumlah, total }]);
+    const jumlah = formDetail.coly * formDetail.qty_isi;
+    const total = getDiskonBertumpuk(
+      formDetail.harga * jumlah,
+      formDetail.diskon
+    ).toFixed(2);
+    setBarang([...barang, { ...formDetail, jumlah, total }]);
+
     setFormDetail({
       nama_barang: "",
-      coly: 0.00,
+      coly: 0,
       satuan_coly: "",
-      qty_isi: 0.00,
+      qty_isi: 0,
       nama_isi: "",
-      harga: 0.00,
-      diskon: 0.00,
+      harga: 0,
+      diskon: [],
     });
     inputNamaBarang.current?.focus();
   };
 
+  const addDiscount = () => {
+    setFormDetail({
+      ...formDetail,
+      diskon: [...formDetail.diskon, 0],
+    });
+  };
+
   // function parseNumericInput(target: EventTarget & HTMLInputElement): number {
   //   console.log(target.value);
-    
+
   //   const rawInput = target.value;
   //   const cleaned = rawInput.replace(/[^0-9.]/g, "");
   //   const parts = cleaned.split(".");
@@ -492,16 +514,18 @@ const NotaPage = () => {
                   <div className="flex gap-2">
                     <Input
                       type="text"
-                      value={item.coly.toFixed(2)}
+                      value={item.coly?.toString().replace(".", ",") ?? ""}
                       onFocus={(e) => e.target.select()}
-                      // step={0.00}
                       onChange={(e) => {
-                        const value = parseFloat(e.target.value.replace(",", "."));
-                        const newColy = isNaN(value) ? 0 : parseFloat(value.toFixed(2));
+                        const input = e.target.value;
+                        const stringWithDot = input.replace(",", ".");
+                        const value = Number(stringWithDot);
                         const newList = [...barang];
-                        newList[index].coly = newColy;
+
+                        newList[index].coly = input;
                         newList[index].jumlah =
-                          newList[index].qty_isi * newColy;
+                          newList[index].qty_isi * (isNaN(value) ? 0 : value);
+
                         setBarang(newList);
                       }}
                     />
@@ -520,14 +544,16 @@ const NotaPage = () => {
                   <div className="flex gap-2">
                     <Input
                       type="text"
-                      value={item.qty_isi.toFixed(2)}
+                      value={item.qty_isi?.toString().replace(".", ",") ?? ""}
                       onFocus={(e) => e.target.select()}
                       onChange={(e) => {
-                        const value = parseFloat(e.target.value.replace(",", "."));
-                        const newQty = isNaN(value) ? 0 : parseFloat(value.toFixed(2));
+                        const input = e.target.value;
+                        const stringWithDot = input.replace(",", ".");
+                        const value = Number(stringWithDot);
                         const newList = [...barang];
-                        newList[index].qty_isi = newQty;
-                        newList[index].jumlah = newList[index].coly * newQty;
+                        newList[index].qty_isi = input;
+                        newList[index].jumlah =
+                          newList[index].coly * (isNaN(value) ? 0 : value);
                         setBarang(newList);
                       }}
                     />
@@ -548,35 +574,59 @@ const NotaPage = () => {
                 <td className="p-2 text-right">
                   <Input
                     type="text"
-                    value={item.harga.toFixed(2)}
+                    value={item.harga?.toString().replace(".", ",") ?? ""}
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => {
-                      const value = parseFloat(e.target.value.replace(",", "."));
-                      const newHarga = isNaN(value) ? 0 : parseFloat(value.toFixed(2));
+                      const input = e.target.value;
+                      const stringWithDot = input.replace(",", ".");
+                      const value = Number(stringWithDot);
                       const newList = [...barang];
-                      newList[index].harga = newHarga;
+                      newList[index].harga = input;
                       newList[index].total =
-                        newList[index].qty_isi * newList[index].coly * newHarga;
+                        newList[index].qty_isi *
+                        newList[index].coly *
+                        (isNaN(value) ? 0 : value);
                       setBarang(newList);
                     }}
                   />
                 </td>
                 <td className="p-2 text-right">
-                  <Input
-                    type="text"
-                    value={item.diskon.toFixed(2)}
-                    onFocus={(e) => e.target.select()}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value.replace(",", "."));
-                      const newDiskon = isNaN(value) ? 0 : parseFloat(value.toFixed(2));
-                      const newList = [...barang];
-                      newList[index].diskon = newDiskon;
-                      newList[index].total =
-                        newList[index].total -
-                        (newList[index].total * newDiskon) / 100;
-                      setBarang(newList);
-                    }}
-                  />
+                  {item.diskon.map((d, i) => (
+                    <Input
+                      key={i}
+                      type="text"
+                      className="w-full border px-2 py-1 mb-1 text-right"
+                      value={d?.toString().replace(".", ",") ?? ""}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => {
+                        const input = e.target.value;
+                        const stringWithDot = input.replace(",", ".");
+                        const value = parseFloat(stringWithDot);
+
+                        // Salin array diskon dan update nilai diskon ke-i
+                        const newDiskon = [...item.diskon];
+                        newDiskon[i] = isNaN(value) ? 0 : value;
+
+                        // Update data barang
+                        const newList = [...barang];
+                        newList[index].diskon = newDiskon;
+
+                        // Hitung ulang total
+                        const coly = parseFloat(newList[index].coly) || 0;
+                        const qty = parseFloat(newList[index].qty_isi) || 0;
+                        const harga = parseFloat(newList[index].harga) || 0;
+                        let total = coly * qty * harga;
+
+                        newDiskon.forEach((persen) => {
+                          total -= (total * persen) / 100;
+                        });
+
+                        newList[index].total = total;
+
+                        setBarang(newList);
+                      }}
+                    />
+                  ))}
                 </td>
                 <td className="p-2 text-right">{formatRibuan(item.total)}</td>
                 <td className="p-2 flex gap-3" colSpan={2}>
@@ -611,7 +661,7 @@ const NotaPage = () => {
                   <input
                     type="number"
                     className="w-1/2 border px-2 py-1 uppercase"
-                    value={formDetail.coly.toFixed(2)}
+                    value={formDetail.coly}
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => {
                       // const raw = +e.target.value.replace(/\D/g, "");
@@ -639,8 +689,7 @@ const NotaPage = () => {
                   <input
                     type="number"
                     className="w-1/2 border px-2 py-1"
-                    value={formDetail.qty_isi.toFixed(2)}
-                    // step={0.00392156863}
+                    value={formDetail.qty_isi}
                     onFocus={(e) => e.target.select()}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value) || 0;
@@ -667,9 +716,9 @@ const NotaPage = () => {
               </td>
               <td className="p-2">
                 <input
-                  type="text"
+                  type="number"
                   className="w-full border px-2 py-1"
-                  value={formDetail.harga.toFixed(2)}
+                  value={formDetail.harga}
                   onFocus={(e) => e.target.select()}
                   onChange={(e) => {
                     const value = parseFloat(e.target.value) || 0;
@@ -681,28 +730,39 @@ const NotaPage = () => {
                 />
               </td>
               <td className="p-2">
-                <input
-                  type="text"
-                  className="w-full border px-2 py-1"
-                  value={formDetail.diskon.toFixed(2)}
-                  onFocus={(e) => e.target.select()}
-                  onChange={(e) => {
-                    const value = parseFloat(e.target.value) || 0;
-                    setFormDetail({
-                      ...formDetail,
-                      diskon: value,
-                    });
-                  }}
-                />
+                {formDetail.diskon.map((d, i) => (
+                  <input
+                    key={i}
+                    type="number"
+                    className="w-full border px-2 py-1 mb-1"
+                    value={d}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0;
+                      const newDiskon = [...formDetail.diskon];
+                      newDiskon[i] = value;
+
+                      setFormDetail({
+                        ...formDetail,
+                        diskon: newDiskon,
+                      });
+                    }}
+                  />
+                ))}
+                <button
+                  className="bg-yellow-600 hover:bg-yellow-400 hover:text-black text-white px-3 py-1 rounded mt-1"
+                  onClick={addDiscount}
+                >
+                  <Plus />
+                </button>
               </td>
               <td className="p-2 text-right">
                 {formDetail.harga && formDetail.qty_isi
                   ? formatRibuan(
-                      formDetail.harga * formDetail.coly * formDetail.qty_isi -
-                        formDetail.harga *
-                          formDetail.coly *
-                          formDetail.qty_isi *
-                          (formDetail.diskon / 100)
+                      getDiskonBertumpuk(
+                        formDetail.harga * formDetail.coly * formDetail.qty_isi,
+                        formDetail.diskon
+                      )
                     )
                   : 0}
               </td>
@@ -711,7 +771,7 @@ const NotaPage = () => {
                   className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
                   onClick={addDetail}
                 >
-                  Tambah
+                  <Plus />
                 </button>
               </td>
             </tr>
@@ -721,7 +781,11 @@ const NotaPage = () => {
               <td colSpan={7}>
                 <div className="my-1.5">Subtotal:</div>
               </td>
-              <td>{subtotal.toLocaleString("id-ID")}</td>
+              <td>
+                {subtotal.toLocaleString("id-ID", {
+                  maximumFractionDigits: 2,
+                })}
+              </td>
               <td></td>
             </tr>
             <tr className="text-right">
@@ -738,7 +802,8 @@ const NotaPage = () => {
                     onChange={(e) => {
                       const val = parseFloat(e.target.value) || 0;
                       setDiskonPersen(val);
-                      setDiskonRupiah((subtotal * val) / 100);
+                      const rupiah = (subtotal * val) / 100;
+                      setDiskonRupiah(rupiah);
                     }}
                     placeholder="Diskon %"
                     type="number"
@@ -769,7 +834,11 @@ const NotaPage = () => {
               <td colSpan={7}>
                 <div className="my-1.5">Total Harga:</div>
               </td>
-              <td>{totalHarga.toLocaleString("id-ID")}</td>
+              <td>
+                {totalHarga.toLocaleString("id-ID", {
+                  maximumFractionDigits: 2,
+                })}
+              </td>
               <td></td>
             </tr>
           </tfoot>

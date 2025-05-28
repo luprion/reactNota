@@ -53,10 +53,10 @@ const PrintNota = () => {
 
   const columns = [
     {
-      label: "No",
-      styling: { justifyContent: "flex-start" },
+      label: "NO",
+      styling: { justifyContent: "center" },
       width: "5%",
-      // stylingTD: { fontWeight: "bold" },
+      stylingTD: { justifyContent: "center" },
       render: (_item: any, index: number, pageIndex: number) =>
         pageIndex * MAX_ITEM_PER_PAGE + index + 1,
     },
@@ -74,7 +74,7 @@ const PrintNota = () => {
       // stylingTD: { fontWeight: "bold" },
       render: (item: any) => (
         <View style={{ flexDirection: "row", width: "100%" }}>
-          <Text style={{ width: 6, textAlign: "right" }}>{item.coly}</Text>
+          <Text style={{ width: 8, textAlign: "right" }}>{parseFloat(item.coly)}</Text>
           <Text style={{ marginLeft: 2 }}>{item.satuan_coly}</Text>
         </View>
       ),
@@ -87,7 +87,7 @@ const PrintNota = () => {
       render: (item: any) => (
         <View style={{ flexDirection: "row", width: "100%" }}>
           {/* <Text style={{ width: 5, textAlign: "right" }}>@ </Text> */}
-          <Text style={{ width: 15, textAlign: "right" }}>{item.qty_isi}</Text>
+          <Text style={{ width: 20, textAlign: "right" }}>{parseFloat(item.qty_isi)}</Text>
           <Text style={{ marginLeft: 2 }}>{item.nama_isi}</Text>
         </View>
       ),
@@ -99,7 +99,7 @@ const PrintNota = () => {
       // stylingTD: { fontWeight: "bold" },
       render: (item: any) => (
         <View style={{ flexDirection: "row", width: "100%" }}>
-          <Text style={{ width: 22, textAlign: "right" }}>{item.jumlah}</Text>
+          <Text style={{ width: 22, textAlign: "right" }}>{parseFloat(item.jumlah)}</Text>
           <Text style={{ marginLeft: 2 }}> {item.nama_isi}</Text>
         </View>
       ),
@@ -120,12 +120,12 @@ const PrintNota = () => {
     {
       label: "% Disc",
       styling: { justifyContent: "flex-end" },
-      // stylingTD: { fontWeight: "bold" },
+      // stylingTD: { display: "flex", justifyContent: "center" },
       width: "5%",
       render: (item: any) => (
-        <View style={{ flexDirection: "row" }}>
-          <Text style={{ width: "100%", textAlign: "right" }}>
-            {item.diskon.toLocaleString()}
+        <View style={{ flexDirection: "row"}}>
+          <Text style={{ width: "100%", textAlign: "center", paddingLeft: 20 }}>
+            {Array.isArray(JSON.parse(item.diskon)) && JSON.parse(item.diskon).length > 0 ? JSON.parse(item.diskon).join("+") : "-"}
           </Text>
         </View>
       ),
@@ -206,7 +206,7 @@ const PrintNota = () => {
 
           <Tabel
             tdStyle={{ padding: "2px", border: "0px" }}
-            weightings={[0.04, 0.35, 0.1, 0.11, 0.11, 0.1, 0.08, 0.11]}
+            weightings={[0.03, 0.33, 0.1, 0.11, 0.11, 0.11, 0.1, 0.11]}
           >
             <TH
               style={{
@@ -285,7 +285,7 @@ const PrintNota = () => {
                     <Text style={styles.label}>SUBTOTAL</Text>
                     <Text style={{ marginLeft: 3 }}>:</Text>
                     <Text style={styles.value}>
-                      Rp. {nota.subtotal.toLocaleString()}
+                      Rp. {nota.subtotal.toLocaleString("id-ID", {maximumFractionDigits: 2})}
                     </Text>
                   </View>
                   <View style={styles.priceRow}>
@@ -297,7 +297,7 @@ const PrintNota = () => {
                     <Text style={styles.label}>TOTAL</Text>
                     <Text style={{ marginLeft: 3 }}>:</Text>
                     <Text style={styles.value}>
-                      Rp. {nota.total_harga.toLocaleString()}
+                      Rp. {nota.total_harga.toLocaleString("id-ID", {maximumFractionDigits: 2})}
                     </Text>
                   </View>
                 </View>

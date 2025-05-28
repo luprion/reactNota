@@ -326,18 +326,17 @@ app.post("/nota", (req, res) => {
         const detailValues = details.map((item) => [
           nota_id,
           item.nama_barang,
-          item.coly,
+          parseFloat(item.coly),
           item.satuan_coly,
-          item.qty_isi,
+          parseFloat(item.qty_isi),
           item.nama_isi,
-          item.jumlah,
-          item.harga,
-          item.diskon,
-          item.total,
+          parseFloat(item.jumlah),
+          parseFloat(item.harga),
+          JSON.stringify(item.diskon),
+          parseFloat(item.total),
           mysqlDatetime6,
           mysqlDatetime6,
         ]);
-
         db.query(sqlDetail, [detailValues], (errDetail, resultDetail) => {
           if (errDetail) {
             return db.rollback(() => {

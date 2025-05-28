@@ -340,15 +340,15 @@ const DetailNota = () => {
   const { notaId } = useParams();
   const parsedNotaId = notaId ? Number(notaId) : undefined;
   const queryClient = useQueryClient();
-  
+
   const { data: notaList } = useGetAllNota();
-  
+
   const nota = notaList?.find((n) => n.id === parsedNotaId);
 
   const { data: detailsData } = useGetDetailNota(parsedNotaId!);
   const { mutate: updateNotaMutate } = useUpdateNota();
   const { mutate: deleteDetail } = useDeleteDetailNota();
-  
+
   // const currentDate = new Date();
   const formatDate = (date: Date) => format(date, "yyyy-MM-dd");
   const formatDateToYMD = (dateStr: string) => {
@@ -381,17 +381,35 @@ const DetailNota = () => {
     const coly = parseFloat(Number(item.coly).toFixed(2)) || 0;
     const qty_isi = parseFloat(Number(item.qty_isi).toFixed(2)) || 0;
     const harga = parseFloat(item.harga) || 0;
-    const diskon = parseFloat(item.diskon) || 0;
-  
+    // const diskon = parseFloat(item.diskon) || 0;
+    let diskonList: number[] = [];
+    if (Array.isArray(item.diskon)) {
+      diskonList = item.diskon;
+    } else if (typeof item.diskon === "string") {
+      try {
+        const parsed = JSON.parse(item.diskon);
+        if (Array.isArray(parsed)) diskonList = parsed;
+      } catch {
+        diskonList = [];
+      }
+    } else if (typeof item.diskon === "number") {
+      diskonList = [item.diskon];
+    }
+
     const jumlah = coly * qty_isi;
-    const total = jumlah * harga * (1 - diskon / 100);
+    // const total = jumlah * harga * (1 - diskon / 100);
+    const total = diskonList.reduce(
+      (acc, persen) => acc - acc * (persen / 100),
+      jumlah * harga
+    );
 
     return {
       ...item,
       coly,
       qty_isi,
       harga,
-      diskon,
+      // diskon,
+      diskon: diskonList,
       jumlah,
       total,
     };
@@ -418,7 +436,7 @@ const DetailNota = () => {
 
   const handleStartEdit = (index: number) => {
     setEditIndex(index);
-    setEditForm({ ...details[index] }); 
+    setEditForm({ ...details[index] });
   };
 
   const handleNotaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -576,7 +594,7 @@ const DetailNota = () => {
               />
             </div>
           ) : (
-            <div className="flex gap-1">              
+            <div className="flex gap-1">
               <p>{Number(row.original.coly).toFixed(2)}</p>
               <p>{row.original.satuan_coly}</p>
             </div>
@@ -593,7 +611,11 @@ const DetailNota = () => {
                 value={Number(row.original.qty_isi).toFixed(2)}
                 onFocus={(e) => e.target.select()}
                 onChange={(e) =>
-                  handleDetailChange(row.original.id, "qty_isi", parseFloat(e.target.value) || 0)
+                  handleDetailChange(
+                    row.original.id,
+                    "qty_isi",
+                    parseFloat(e.target.value) || 0
+                  )
                 }
                 className="w-15"
               />
@@ -649,25 +671,69 @@ const DetailNota = () => {
         accessorKey: "diskon",
         header: "% Disc",
         size: 50,
-        cell: ({ row }) =>
-          editIndex === row.index ? (
-            <Input
-              value={row.original.diskon}
-              onFocus={(e) => e.target.select()}
-              onChange={(e) =>
-                handleDetailChange(row.original.id, "diskon", e.target.value)
-              }
-              className="w-10"
-            />
-          ) : (
-            row.original.diskon
-          ),
+        // cell: ({ row }) =>
+        //   editIndex === row.index ? (
+        //     <Input
+        //       value={row.original.diskon}
+        //       onFocus={(e) => e.target.select()}
+        //       onChange={(e) =>
+        //         handleDetailChange(row.original.id, "diskon", e.target.value)
+        //       }
+        //       className="w-10"
+        //     />
+        //   ) : (
+        //     row.original.diskon
+        //   ),
+        cell: ({ row }) => {
+          const value = row.original.diskon;
+          const parsed: number[] = Array.isArray(value)
+            ? value
+            : typeof value === "string"
+            ? (() => {
+                try {
+                  return JSON.parse(value);
+                } catch {
+                  return [];
+                }
+              })()
+            : [];
+
+          if (editIndex === row.index) {
+            return (
+              <div className="flex flex-col gap-1">
+                {parsed.map((d, i) => (
+                  <Input
+                    key={i}
+                    type="text"
+                    value={d?.toString().replace(".", ",") ?? ""}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => {
+                      const input = e.target.value;
+                      const stringWithDot = input.replace(",", ".");
+                      const num = parseFloat(stringWithDot);
+                      const newDiskon = [...parsed];
+                      newDiskon[i] = isNaN(num) ? 0 : num;
+
+                      handleDetailChange(row.original.id, "diskon", newDiskon);
+                    }}
+                    className="w-16 text-right"
+                  />
+                ))}
+              </div>
+            );
+          } else {
+            return parsed.join(" + ");
+          }
+        },
       },
       {
         accessorKey: "total",
         header: "Subtotal",
         size: 100,
-        cell: ({ row }) => Number(row.original.total).toLocaleString("id-ID"),
+        cell: ({ row }) =>
+          Number(row.original.total).toLocaleString("id-ID", {
+            maximumFractionDigits: 2,
+          }),
       },
       {
         id: "actions",
@@ -844,7 +910,7 @@ const DetailNota = () => {
         <div className="flex justify-end mb-5">
           <AddDetailModal
             onAdd={(newDetail) => {
-              setDetails((prev) => [...prev, newDetail]); 
+              setDetails((prev) => [...prev, newDetail]);
             }}
           />
         </div>
@@ -883,7 +949,10 @@ const DetailNota = () => {
               <TableCell colSpan={7} className="text-right">
                 Subtotal:
               </TableCell>
-              <TableCell>Rp. {subtotal.toLocaleString("id-ID")}</TableCell>
+              <TableCell>
+                Rp.{" "}
+                {subtotal.toLocaleString("id-ID", { maximumFractionDigits: 2 })}
+              </TableCell>
               <TableCell></TableCell>
             </TableRow>
             <TableRow>
@@ -930,7 +999,10 @@ const DetailNota = () => {
                 Total:
               </TableCell>
               <TableCell className="font-bold">
-                Rp. {(subtotal - diskonRupiah).toLocaleString("id-ID")}
+                Rp.{" "}
+                {(subtotal - diskonRupiah).toLocaleString("id-ID", {
+                  maximumFractionDigits: 2,
+                })}
               </TableCell>
               <TableCell>
                 <Button

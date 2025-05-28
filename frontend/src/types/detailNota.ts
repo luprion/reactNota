@@ -8,7 +8,7 @@ export interface DetailNota {
     nama_isi: string,
     jumlah: number,
     harga: number,
-    diskon: number,
+    diskon: string,
     total: number
 }
 
